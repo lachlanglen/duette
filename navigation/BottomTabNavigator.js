@@ -12,7 +12,9 @@ import DuetteScreen from '../screens/DuetteScreen';
 const BottomTab = createBottomTabNavigator();
 const INITIAL_ROUTE_NAME = 'Accompaniment';
 
-const BottomTabNavigator = ({ navigation, route }) => {
+const BottomTabNavigator = (props) => {
+
+  const { navigation, route } = props;
   // Set the header title on the parent stack navigator depending on the
   // currently active tab. Learn more in the documentation:
   // https://reactnavigation.org/docs/en/screen-options-resolution.html
