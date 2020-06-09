@@ -13,6 +13,8 @@ const Stack = createStackNavigator();
 
 export default function App(props) {
   const isLoadingComplete = useCachedResources();
+  const containerRef = React.useRef();
+  const [initialNavigationState, setInitialNavigationState] = React.useState();
 
   if (!isLoadingComplete) {
     return null;
@@ -20,7 +22,7 @@ export default function App(props) {
     return (
       <View style={styles.container}>
         {Platform.OS === 'ios' && <StatusBar barStyle="dark-content" />}
-        <NavigationContainer linking={LinkingConfiguration}>
+        <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
           <Provider store={store}>
             <Stack.Navigator>
               <Stack.Screen name="Root" component={BottomTabNavigator} />
