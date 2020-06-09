@@ -11,10 +11,12 @@ import LinkingConfiguration from './navigation/LinkingConfiguration';
 
 const Stack = createStackNavigator();
 
+console.disableYellowBox = true;
+
 export default function App(props) {
   const isLoadingComplete = useCachedResources();
   const containerRef = React.useRef();
-  const [initialNavigationState, setInitialNavigationState] = React.useState();
+  // const [initialNavigationState, setInitialNavigationState] = React.useState();
 
   if (!isLoadingComplete) {
     return null;
@@ -22,7 +24,11 @@ export default function App(props) {
     return (
       <View style={styles.container}>
         {Platform.OS === 'ios' && <StatusBar barStyle="dark-content" />}
-        <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
+        <NavigationContainer
+          ref={containerRef}
+          // initialState={initialNavigationState}
+          linking={LinkingConfiguration}
+        >
           <Provider store={store}>
             <Stack.Navigator>
               <Stack.Screen name="Root" component={BottomTabNavigator} />

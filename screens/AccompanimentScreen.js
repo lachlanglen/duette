@@ -25,7 +25,7 @@ import { connect } from 'react-redux'
 // let timerIntervalId;
 // let countdownIntervalId;
 
-const HomeScreen = (props) => {
+const AccompanimentScreen = (props) => {
 
   // const [hasAudioPermission, setHasAudioPermission] = useState(null);
   // const [hasCameraPermission, setHasCameraPermission] = useState(null);
@@ -241,7 +241,7 @@ const HomeScreen = (props) => {
 
   return (
     <View>
-      <Text>Hi</Text>
+      <Text>Hi in accompaniment screen!</Text>
     </View>
   )
 
@@ -404,7 +404,7 @@ const mapDispatch = dispatch => {
   }
 };
 
-export default connect(mapState, mapDispatch)(HomeScreen);
+export default connect(mapState, mapDispatch)(AccompanimentScreen);
 
 // export default HomeScreen;
 
