@@ -2,7 +2,7 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
 import { Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, ScrollView, Alert } from 'react-native';
-// import { connect } from 'react-redux'
+import { connect } from 'react-redux'
 // import * as ScreenOrientation from 'expo-screen-orientation';
 // import * as Permissions from 'expo-permissions';
 // import * as Device from 'expo-device';
@@ -389,22 +389,22 @@ const styles = StyleSheet.create({
   }
 })
 
-// const mapState = ({ user, displayUserInfo, dataLoaded }) => {
-//   return {
-//     user,
-//     displayUserInfo,
-//     dataLoaded,
-//   }
-// };
+const mapState = ({ user, displayUserInfo, dataLoaded }) => {
+  return {
+    user,
+    displayUserInfo,
+    dataLoaded,
+  }
+};
 
-// const mapDispatch = dispatch => {
-//   return {
-//     fetchVideos: () => dispatch(fetchVideos()),
-//     toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
-//   }
-// };
+const mapDispatch = dispatch => {
+  return {
+    fetchVideos: () => dispatch(fetchVideos()),
+    toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
+  }
+};
 
-// export default connect(mapState, mapDispatch)(HomeScreen);
+export default connect(mapState, mapDispatch)(HomeScreen);
 
-export default HomeScreen;
+// export default HomeScreen;
 
