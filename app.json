@@ -23,10 +23,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "test.expo.expo"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
-    }
+    },
+    "android": {
+      "package": "test.expo.expo"
+    },
+    "entryPoint": "node_modules/expo/AppEntry.js"
   }
 }
