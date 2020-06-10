@@ -5,7 +5,7 @@ import { Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, 
 import { connect } from 'react-redux'
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Permissions from 'expo-permissions';
-// import * as Device from 'expo-device';
+import * as Device from 'expo-device';
 // import { Camera } from 'expo-camera';
 // import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 // import DetailsModal from '../components/DetailsModal';
@@ -102,12 +102,12 @@ const AccompanimentScreen = (props) => {
         }
       })
     };
-    // const getDeviceType = async () => {
-    //   const type = await Device.getDeviceTypeAsync();
-    //   setDeviceType(type);
-    // };
+    const getDeviceType = async () => {
+      const type = await Device.getDeviceTypeAsync();
+      setDeviceType(type);
+    };
     detectOrientation();
-    // getDeviceType();
+    getDeviceType();
   }, []);
 
   // const handleRefresh = () => {
