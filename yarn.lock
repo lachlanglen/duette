@@ -3350,7 +3350,7 @@ expo-camera@^8.2.0:
     lodash "^4.6.0"
     prop-types "^15.6.0"
 
-expo-constants@~9.0.0:
+expo-constants@^9.0.0, expo-constants@~9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-9.0.0.tgz#35c600079ee91d38fe4f56375caae6e90f122fdd"
   integrity sha512-1kqZMM8Ez5JT3sTEx8I69fP6NYFLOJjeM6Z63dD/m2NiwvzSADiO5+BhghnWNGN1L3bxbgOjXS6EHtS7CdSfxA==
@@ -3366,6 +3366,11 @@ expo-error-recovery@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/expo-error-recovery/-/expo-error-recovery-1.1.0.tgz#98b9de5400dbfd022d1631739f3bf5e7016565da"
   integrity sha512-33aRfPaXdAt0df1TL26JjM5qCAoEW8RAExjgMgunPcdQcf4sWiWFm3qYL8zrO/8DM4uUq4X2FCuPLHMlOYT/aw==
+
+expo-facebook@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/expo-facebook/-/expo-facebook-8.1.0.tgz#e23e1532b7622971ec6f9a3175fa29f864a25f49"
+  integrity sha512-tWr9zxHR/PLEoGm/2zJGzmRCMcgk/hKowV4bh7Xm/Diy34jlvYaWJEhiJT58v0QoSD/IXhUPYkCMFDL2hOGRFA==
 
 expo-file-system@~8.1.0:
   version "8.1.0"
@@ -3387,7 +3392,7 @@ expo-image-loader@~1.0.0:
   resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-1.0.1.tgz#a83e336768df4dfcb8909aebb6d8152e256d7a72"
   integrity sha512-v7ziP+UGj+LArEmP//XTaqi9iFWRa8LAShNoFwwnpPS9huM8q3I+P16xK+GTo+4bQa1pPSIFBUZ8KqwAc+k8mQ==
 
-expo-keep-awake@~8.1.0:
+expo-keep-awake@^8.1.0, expo-keep-awake@~8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-8.1.0.tgz#3a1d8aa5a8395d40c7d79e1c93020ae5f848e664"
   integrity sha512-RNPwWvpwsJwJS8ZI1yklKyVQ6l2NNZBCN2aSgQMRza2SABnpFFzDLHQwMo7DC+nbmrOueMvCIDr0VI3xrzGfEg==
@@ -3422,6 +3427,11 @@ expo-screen-orientation@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/expo-screen-orientation/-/expo-screen-orientation-1.0.0.tgz#a168b7493e7a7b45da2c80b1b0d4e89e1f8e7698"
   integrity sha512-McYHWSA3KVgh3IeztKg0oxkHtSRzDfqGRSHg6GgIici5C93LOF4tGzO38tLNVGXIjbu8EdvBRB7pslKS73AXGg==
+
+expo-secure-store@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/expo-secure-store/-/expo-secure-store-8.1.0.tgz#1dcc4705c5264c828592a83842b8be8bbfb5f77f"
+  integrity sha512-EjCx9M2nH7iW3eNOjXl0I7oPypI0es6OStZakimR2iD8riLZp9LYHTj+39Iuz2o1m3OKi+bpwr3cHL52DxcDnA==
 
 expo-splash-screen@^0.2.3:
   version "0.2.3"

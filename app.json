@@ -32,6 +32,10 @@
     "android": {
       "package": "test.expo.expo"
     },
-    "entryPoint": "node_modules/expo/AppEntry.js"
+    "entryPoint": "node_modules/expo/AppEntry.js",
+    "extra": {
+      "FACEBOOK_APP_ID": "1387690044775372",
+      "FACEBOOK_APP_SECRET": "2655f0aa2e0ad3fb38162cacbdb660b2"
+    }
   }
 }

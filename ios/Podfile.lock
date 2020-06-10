@@ -15,6 +15,11 @@ PODS:
     - UMCore
   - EXErrorRecovery (1.1.0):
     - UMCore
+  - EXFacebook (8.1.0):
+    - FBSDKCoreKit (~> 5.8.0)
+    - FBSDKLoginKit (~> 5.8.0)
+    - UMConstantsInterface
+    - UMCore
   - EXFileSystem (8.1.0):
     - UMCore
     - UMFileSystemInterface
@@ -39,6 +44,8 @@ PODS:
   - EXScreenOrientation (1.0.0):
     - React-Core
     - UMCore
+  - EXSecureStore (8.1.0):
+    - UMCore
   - EXSplashScreen (0.2.3):
     - UMCore
   - EXSQLite (8.1.0):
@@ -57,6 +64,16 @@ PODS:
     - React-Core (= 0.61.5)
     - React-jsi (= 0.61.5)
     - ReactCommon/turbomodule/core (= 0.61.5)
+  - FBSDKCoreKit (5.8.0):
+    - FBSDKCoreKit/Basics (= 5.8.0)
+    - FBSDKCoreKit/Core (= 5.8.0)
+  - FBSDKCoreKit/Basics (5.8.0)
+  - FBSDKCoreKit/Core (5.8.0):
+    - FBSDKCoreKit/Basics
+  - FBSDKLoginKit (5.8.0):
+    - FBSDKLoginKit/Login (= 5.8.0)
+  - FBSDKLoginKit/Login (5.8.0):
+    - FBSDKCoreKit (~> 5.0)
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
@@ -302,6 +319,7 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXDevice (from `../node_modules/expo-device/ios`)
   - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
+  - EXFacebook (from `../node_modules/expo-facebook/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -310,6 +328,7 @@ DEPENDENCIES:
   - EXLocation (from `../node_modules/expo-location/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
+  - EXSecureStore (from `../node_modules/expo-secure-store/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXSQLite (from `../node_modules/expo-sqlite/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -364,6 +383,8 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - boost-for-react-native
+    - FBSDKCoreKit
+    - FBSDKLoginKit
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -376,6 +397,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-device/ios"
   EXErrorRecovery:
     :path: "../node_modules/expo-error-recovery/ios"
+  EXFacebook:
+    :path: "../node_modules/expo-facebook/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -392,6 +415,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-permissions/ios"
   EXScreenOrientation:
     :path: "../node_modules/expo-screen-orientation/ios"
+  EXSecureStore:
+    :path: "../node_modules/expo-secure-store/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   EXSQLite:
@@ -494,6 +519,7 @@ SPEC CHECKSUMS:
   EXConstants: 5304709b1bea70a4828f48ba4c7fc3ec3b2d9b17
   EXDevice: 6e2b0178ab15cf57a46325e87f6e797cc72f6ddc
   EXErrorRecovery: 8f4c21ab2f51bf75defe4536f841a37de59b0661
+  EXFacebook: 74d53d9da75d1a953f1821dd417594ed18d7a72f
   EXFileSystem: cf4232ba7c62dc49b78c2d36005f97b6fddf0b01
   EXFont: b60f7a8900e3a12e7be3b2a40e19b22c7b5f89ba
   EXImageLoader: 5ad6896fa1ef2ee814b551873cbf7a7baccc694a
@@ -502,12 +528,15 @@ SPEC CHECKSUMS:
   EXLocation: bbd487fd96a18a3ad9725389bbb94c4a5f78edf3
   EXPermissions: 24b97f734ce9172d245a5be38ad9ccfcb6135964
   EXScreenOrientation: 44d3cd3a99a86b9cb681e742697bc2c057d7fbd2
+  EXSecureStore: 7a03e21e80ae59bf8e86c55e7a400f60db2da639
   EXSplashScreen: 6568daa178c8e17f2197d29cea858f0e0b61b695
   EXSQLite: 877ad6c8eb169353a2f94d5ad26510ffadd46a1f
   EXUpdates: db34a484d109fc11fc6f48bb42c2cabf5a2eafc8
   EXWebBrowser: 5902f99ac5ac551e5c82ff46f13a337b323aa9ea
   FBLazyVector: aaeaf388755e4f29cd74acbc9e3b8da6d807c37f
   FBReactNativeSpec: 118d0d177724c2d67f08a59136eb29ef5943ec75
+  FBSDKCoreKit: e7dcac0aabcfb09d0166998edd95fe3b05a0ce5d
+  FBSDKLoginKit: 1b0cf04df0370b37404213157b060d6666ede814
   Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
   glog: 1f3da668190260b06b429bb211bfbee5cd790c28
   RCTRequired: b153add4da6e7dbc44aebf93f3cf4fcae392ddf1

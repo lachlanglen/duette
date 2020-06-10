@@ -1,3 +1,8 @@
+// import Constants from 'expo-constants';
+// import * as manifest from './app.json';
+// if (!Constants.manifest) {
+//   Constants.manifest = manifest.expo
+// }
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';

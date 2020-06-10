@@ -7,9 +7,9 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Permissions from 'expo-permissions';
 import * as Device from 'expo-device';
 import { Camera } from 'expo-camera';
-// import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 // import DetailsModal from '../components/DetailsModal';
-// import { fetchVideos } from '../redux/videos';
+import { fetchVideos } from '../redux/videos';
 // import FacebookSignin from '../components/FacebookSignin';
 // import UserInfoMenu from '../components/UserInfoMenu';
 // import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
@@ -17,30 +17,30 @@ import { Camera } from 'expo-camera';
 // import PreviewAccompanimentAndroid from '../components/android/PreviewAccompaniment';
 // import PreviewAccompanimentIos from '../components/ios/PreviewAccompaniment';
 // import buttonStyles from '../styles/button';
-// import LoadingSpinner from '../components/LoadingSpinner';
-// import { toggleUserInfo } from '../redux/userInfo';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { toggleUserInfo } from '../redux/userInfo';
 // import SubscriptionOverlay from '../components/SubscriptionOverlay';
-// import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
+import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
 
-// let timerIntervalId;
-// let countdownIntervalId;
+let timerIntervalId;
+let countdownIntervalId;
 
 const AccompanimentScreen = (props) => {
 
   const [hasAudioPermission, setHasAudioPermission] = useState(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
-  // const [record, setRecord] = useState(false);
-  // const [recording, setRecording] = useState(false);
-  // const [dataUri, setDataUri] = useState('');
-  // const [cameraRef, setCameraRef] = useState(null);
-  // const [preview, setPreview] = useState(false);
-  // const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [record, setRecord] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [dataUri, setDataUri] = useState('');
+  const [cameraRef, setCameraRef] = useState(null);
+  const [preview, setPreview] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [screenOrientation, setScreenOrientation] = useState('');
-  // const [secs, setSecs] = useState(540);  // start with 9 mins remaining
-  // const [countdown, setCountdown] = useState(3);  // start with 3 secs remaining
-  // const [countdownActive, setCountdownActive] = useState(false);
-  // const [timerActive, setTimerActive] = useState(false);
-  // const [deviceType, setDeviceType] = useState(null);
+  const [secs, setSecs] = useState(540);  // start with 9 mins remaining
+  const [countdown, setCountdown] = useState(3);  // start with 3 secs remaining
+  const [countdownActive, setCountdownActive] = useState(false);
+  const [timerActive, setTimerActive] = useState(false);
+  const [deviceType, setDeviceType] = useState(null);
 
   const screenWidth = Math.round(Dimensions.get('window').width);
   const screenHeight = Math.round(Dimensions.get('window').height);
@@ -110,139 +110,137 @@ const AccompanimentScreen = (props) => {
     getDeviceType();
   }, []);
 
-  // const handleRefresh = () => {
-  //   if (recording) cameraRef.stopRecording();
-  //   clearInterval(timerIntervalId);
-  //   clearInterval(countdownIntervalId);
-  //   setCountdownActive(false);
-  //   setTimerActive(false);
-  //   setRecording(false);
-  //   setDataUri('');
-  //   setShowDetailsModal(false);
+  const handleRefresh = () => {
+    if (recording) cameraRef.stopRecording();
+    clearInterval(timerIntervalId);
+    clearInterval(countdownIntervalId);
+    setCountdownActive(false);
+    setTimerActive(false);
+    setRecording(false);
+    setDataUri('');
+    setShowDetailsModal(false);
+    setPreview(false);
+    setSecs(540);
+    setCountdown(3);
+  };
+
+  const startRecording = async () => {
+    try {
+      setRecording(true);
+      startTimer();
+      const vid = await cameraRef.recordAsync({ quality: Camera.Constants.VideoQuality['720p'] });
+      setDataUri(vid.uri)
+    } catch (e) {
+      Alert.alert(
+        `Oops!`,
+        "We encountered a problem. Please press 'OK' to try again.",
+        [
+          { text: 'OK', onPress: () => handleRefresh() },
+        ],
+        { cancelable: false }
+      )
+      throw new Error('error in recordAsync: ', e);
+    }
+  };
+
+  const stopRecording = () => {
+    cameraRef.stopRecording();
+    setRecording(false);
+    setPreview(true);
+    setSecs(540);
+  };
+
+  const toggleRecord = () => {
+    if (recording) {
+      if (secs > 530) {
+        Alert.alert(
+          'Too short',
+          "Video must be at least 10 seconds long",
+          [
+            { text: 'OK', onPress: () => handleRefresh() },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        clearInterval(timerIntervalId);
+        deactivateKeepAwake();
+        stopRecording();
+      }
+    } else {
+      activateKeepAwake();
+      setCountdownActive(false);
+      startRecording();
+    }
+  };
+
+  const handleRecordExit = () => {
+    handleRefresh();
+    setRecord(false);
+  };
+
+  const handleDetailsExit = () => {
+    setRecord(false);
+    setShowDetailsModal(false);
+    setPreview(false);
+    setCountdown(3);
+  };
+
+  // const handleRedo = () => {
   //   setPreview(false);
-  //   setSecs(540);
   //   setCountdown(3);
   // };
 
-  // const startRecording = async () => {
-  //   try {
-  //     setRecording(true);
-  //     startTimer();
-  //     const vid = await cameraRef.recordAsync({ quality: Camera.Constants.VideoQuality['720p'] });
-  //     setDataUri(vid.uri)
-  //   } catch (e) {
-  //     Alert.alert(
-  //       `Oops!`,
-  //       "We encountered a problem. Please press 'OK' to try again.",
-  //       [
-  //         { text: 'OK', onPress: () => handleRefresh() },
-  //       ],
-  //       { cancelable: false }
-  //     )
-  //     throw new Error('error in recordAsync: ', e);
-  //   }
-  // };
+  const handleSave = () => {
+    Alert.alert(
+      'Agree to Terms',
+      "By saving this base track, you are making it available to any user on the Duette app. You can delete it at any time by searching for the video and selecting 'Delete'. You are also confirming that this video does not contain explicit content. Do you wish to continue?",
+      [
+        { text: 'Yes, I agree', onPress: () => setShowDetailsModal(true) },
+        { text: 'Cancel', onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  };
 
-  // const stopRecording = () => {
-  //   cameraRef.stopRecording();
-  //   setRecording(false);
-  //   setPreview(true);
-  //   setSecs(540);
-  // };
+  const startTimer = () => {
+    setTimerActive(true);
+    timerIntervalId = setInterval(() => {
+      setSecs(secs => secs - 1)
+    }, 1000)
+  };
 
-  // const toggleRecord = () => {
-  //   if (recording) {
-  //     if (secs > 530) {
-  //       Alert.alert(
-  //         'Too short',
-  //         "Video must be at least 10 seconds long",
-  //         [
-  //           { text: 'OK', onPress: () => handleRefresh() },
-  //         ],
-  //         { cancelable: false }
-  //       );
-  //     } else {
-  //       clearInterval(timerIntervalId);
-  //       deactivateKeepAwake();
-  //       stopRecording();
-  //     }
-  //   } else {
-  //     activateKeepAwake();
-  //     setCountdownActive(false);
-  //     startRecording();
-  //   }
-  // };
+  useEffect(() => {
+    if (timerActive && secs === 0) {
+      clearInterval(timerIntervalId);
+      setTimerActive(false);
+      toggleRecord();
+    }
+  }, [timerActive, secs]);
 
-  // const handleRecordExit = () => {
-  //   handleRefresh();
-  //   setRecord(false);
-  // };
+  const startCountdown = () => {
+    setCountdownActive(true);
+    countdownIntervalId = setInterval(() => {
+      setCountdown(countdown => countdown - 1)
+    }, 1000)
+  };
 
-  // const handleDetailsExit = () => {
-  //   setRecord(false);
-  //   setShowDetailsModal(false);
-  //   setPreview(false);
-  //   setCountdown(3);
-  // };
+  useEffect(() => {
+    if (countdownActive && countdown === 0) {
+      clearInterval(countdownIntervalId);
+      setCountdownActive(false);
+      setCountdown(3);
+      toggleRecord();
+    }
+  }, [countdownActive, countdown]);
 
-  // // const handleRedo = () => {
-  // //   setPreview(false);
-  // //   setCountdown(3);
-  // // };
+  const handleHideUserInfo = () => {
+    props.toggleUserInfo(false);
+  };
 
-  // const handleSave = () => {
-  //   Alert.alert(
-  //     'Agree to Terms',
-  //     "By saving this base track, you are making it available to any user on the Duette app. You can delete it at any time by searching for the video and selecting 'Delete'. You are also confirming that this video does not contain explicit content. Do you wish to continue?",
-  //     [
-  //       { text: 'Yes, I agree', onPress: () => setShowDetailsModal(true) },
-  //       { text: 'Cancel', onPress: () => { } },
-  //     ],
-  //     { cancelable: false }
-  //   );
-  // };
-
-  // const startTimer = () => {
-  //   setTimerActive(true);
-  //   timerIntervalId = setInterval(() => {
-  //     setSecs(secs => secs - 1)
-  //   }, 1000)
-  // };
-
-  // useEffect(() => {
-  //   if (timerActive && secs === 0) {
-  //     clearInterval(timerIntervalId);
-  //     setTimerActive(false);
-  //     toggleRecord();
-  //   }
-  // }, [timerActive, secs]);
-
-  // const startCountdown = () => {
-  //   setCountdownActive(true);
-  //   countdownIntervalId = setInterval(() => {
-  //     setCountdown(countdown => countdown - 1)
-  //   }, 1000)
-  // };
-
-  // useEffect(() => {
-  //   if (countdownActive && countdown === 0) {
-  //     clearInterval(countdownIntervalId);
-  //     setCountdownActive(false);
-  //     setCountdown(3);
-  //     toggleRecord();
-  //   }
-  // }, [countdownActive, countdown]);
-
-  // const handleHideUserInfo = () => {
-  //   props.toggleUserInfo(false);
-  // };
-
-  // // console.log('props.user: ', props.user)
+  // console.log('props.user: ', props.user)
 
   return (
-    <View>
-      <Text>Hey in accompaniment screen!</Text>
-    </View>
+    <WelcomeFlow />
   )
 
   // return (
