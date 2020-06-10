@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { connect } from 'react-redux'
-// import * as ScreenOrientation from 'expo-screen-orientation';
-// import * as Permissions from 'expo-permissions';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import * as Permissions from 'expo-permissions';
 // import * as Device from 'expo-device';
 // import { Camera } from 'expo-camera';
 // import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
@@ -27,88 +27,88 @@ import { connect } from 'react-redux'
 
 const AccompanimentScreen = (props) => {
 
-  // const [hasAudioPermission, setHasAudioPermission] = useState(null);
-  // const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [hasAudioPermission, setHasAudioPermission] = useState(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
   // const [record, setRecord] = useState(false);
   // const [recording, setRecording] = useState(false);
   // const [dataUri, setDataUri] = useState('');
   // const [cameraRef, setCameraRef] = useState(null);
   // const [preview, setPreview] = useState(false);
   // const [showDetailsModal, setShowDetailsModal] = useState(false);
-  // const [screenOrientation, setScreenOrientation] = useState('');
+  const [screenOrientation, setScreenOrientation] = useState('');
   // const [secs, setSecs] = useState(540);  // start with 9 mins remaining
   // const [countdown, setCountdown] = useState(3);  // start with 3 secs remaining
   // const [countdownActive, setCountdownActive] = useState(false);
   // const [timerActive, setTimerActive] = useState(false);
   // const [deviceType, setDeviceType] = useState(null);
 
-  // let screenWidth = Math.round(Dimensions.get('window').width);
-  // let screenHeight = Math.round(Dimensions.get('window').height);
+  const screenWidth = Math.round(Dimensions.get('window').width);
+  const screenHeight = Math.round(Dimensions.get('window').height);
 
-  // useEffect(() => {
-  //   async function getPermissions() {
-  //     const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
-  //     if (perms.permissions.audioRecording.granted) {
-  //       setHasAudioPermission(true);
-  //     } else {
-  //       const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-  //       if (status === 'granted') {
-  //         setHasAudioPermission(true);
-  //       } else {
-  //         Alert.alert(
-  //           `Oops...`,
-  //           'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
-  //           [
-  //             { text: 'OK', onPress: () => { } },
-  //           ],
-  //           { cancelable: false }
-  //         )
-  //         throw new Error('Audio permissions not granted');
-  //       }
-  //     }
-  //     if (perms.permissions.camera.granted) {
-  //       setHasCameraPermission(true);
-  //     } else {
-  //       const { status } = await Permissions.askAsync(Permissions.CAMERA);
-  //       if (status === 'granted') {
-  //         setHasCameraPermission(true);
-  //       } else {
-  //         Alert.alert(
-  //           `Oops...`,
-  //           'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
-  //           [
-  //             { text: 'OK', onPress: () => handleRefresh() },
-  //           ],
-  //           { cancelable: false }
-  //         )
-  //         throw new Error('Camera permissions not granted');
-  //       }
-  //     }
-  //   }
-  //   getPermissions();
-  // }, []);
+  useEffect(() => {
+    async function getPermissions() {
+      const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
+      if (perms.permissions.audioRecording.granted) {
+        setHasAudioPermission(true);
+      } else {
+        const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+        if (status === 'granted') {
+          setHasAudioPermission(true);
+        } else {
+          Alert.alert(
+            `Oops...`,
+            'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
+            [
+              { text: 'OK', onPress: () => { } },
+            ],
+            { cancelable: false }
+          )
+          throw new Error('Audio permissions not granted');
+        }
+      }
+      if (perms.permissions.camera.granted) {
+        setHasCameraPermission(true);
+      } else {
+        const { status } = await Permissions.askAsync(Permissions.CAMERA);
+        if (status === 'granted') {
+          setHasCameraPermission(true);
+        } else {
+          Alert.alert(
+            `Oops...`,
+            'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
+            [
+              { text: 'OK', onPress: () => handleRefresh() },
+            ],
+            { cancelable: false }
+          )
+          throw new Error('Camera permissions not granted');
+        }
+      }
+    }
+    getPermissions();
+  }, []);
 
-  // useEffect(() => {
-  //   const detectOrientation = () => {
-  //     if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
-  //     if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
-  //     ScreenOrientation.addOrientationChangeListener(info => {
-  //       if (info.orientationInfo.orientation === 'UNKNOWN') {
-  //         if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
-  //         if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
-  //       } else {
-  //         if (info.orientationInfo.orientation === 1 || info.orientationInfo.orientation === 2) setScreenOrientation('PORTRAIT');
-  //         if (info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) setScreenOrientation('LANDSCAPE');
-  //       }
-  //     })
-  //   };
-  //   const getDeviceType = async () => {
-  //     const type = await Device.getDeviceTypeAsync();
-  //     setDeviceType(type);
-  //   };
-  //   detectOrientation();
-  //   getDeviceType();
-  // });
+  useEffect(() => {
+    const detectOrientation = () => {
+      if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+      if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+      ScreenOrientation.addOrientationChangeListener(info => {
+        if (info.orientationInfo.orientation === 'UNKNOWN') {
+          if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+          if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+        } else {
+          if (info.orientationInfo.orientation === 1 || info.orientationInfo.orientation === 2) setScreenOrientation('PORTRAIT');
+          if (info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) setScreenOrientation('LANDSCAPE');
+        }
+      })
+    };
+    // const getDeviceType = async () => {
+    //   const type = await Device.getDeviceTypeAsync();
+    //   setDeviceType(type);
+    // };
+    detectOrientation();
+    // getDeviceType();
+  }, []);
 
   // const handleRefresh = () => {
   //   if (recording) cameraRef.stopRecording();
