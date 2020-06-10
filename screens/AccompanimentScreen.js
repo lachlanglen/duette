@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Permissions from 'expo-permissions';
 import * as Device from 'expo-device';
-// import { Camera } from 'expo-camera';
+import { Camera } from 'expo-camera';
 // import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 // import DetailsModal from '../components/DetailsModal';
 // import { fetchVideos } from '../redux/videos';
@@ -241,7 +241,7 @@ const AccompanimentScreen = (props) => {
 
   return (
     <View>
-      <Text>Hi in accompaniment screen!</Text>
+      <Text>Hey in accompaniment screen!</Text>
     </View>
   )
 
