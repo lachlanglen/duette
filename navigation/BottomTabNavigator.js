@@ -18,7 +18,7 @@ const BottomTabNavigator = (props) => {
   // Set the header title on the parent stack navigator depending on the
   // currently active tab. Learn more in the documentation:
   // https://reactnavigation.org/docs/en/screen-options-resolution.html
-  navigation.setOptions({ headerTitle: getHeaderTitle(route), headerRight: () => <UserIcon />, headerStyle: { backgroundColor: '#0047B9', height: 70 }, headerTitleStyle: { color: 'white' } });
+  navigation.setOptions({ headerTitle: getHeaderTitle(route, props.user), headerRight: () => <UserIcon />, headerStyle: { backgroundColor: '#0047B9', height: 70 }, headerTitleStyle: { color: 'white' } });
 
   const handlePress = () => {
     if (props.user.id) {
@@ -38,30 +38,30 @@ const BottomTabNavigator = (props) => {
         name="Accompaniment"
         component={AccompanimentScreen}
         options={{
-          title: 'Get Started',
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="md-code-working" />,
+          title: 'Record a base track!',
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="md-musical-note" />,
         }}
       />
       <BottomTab.Screen
-        name="Links"
+        name="Duette"
         component={DuetteScreen}
         options={{
-          title: 'Resources',
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="md-book" />,
+          title: 'Record a Duette!',
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="md-musical-notes" />,
         }}
       />
     </BottomTab.Navigator>
   );
 }
 
-function getHeaderTitle(route) {
+function getHeaderTitle(route, user) {
   const routeName = route.state ?.routes[route.state.index] ?.name ?? INITIAL_ROUTE_NAME;
 
   switch (routeName) {
-    case 'Home':
-      return 'How to get started';
-    case 'Links':
-      return 'Links to learn more';
+    case 'Accompaniment':
+      return `Welcome${user.name ? `, ${user.name.split(' ')[0]}` : ' to Duette'}!`;
+    case 'Duette':
+      return `${user.name ? 'Choose a base track' : 'Welcome to Duette!'}`;
   }
 };
 
