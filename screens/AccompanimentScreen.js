@@ -4,31 +4,28 @@ import React, { useState, useEffect } from 'react';
 import { Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { connect } from 'react-redux'
 import * as ScreenOrientation from 'expo-screen-orientation';
-import * as Permissions from 'expo-permissions';
 import * as Device from 'expo-device';
 import { Camera } from 'expo-camera';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
-// import DetailsModal from '../components/DetailsModal';
+import DetailsModal from '../components/DetailsModal';
 import { fetchVideos } from '../redux/videos';
 // import FacebookSignin from '../components/FacebookSignin';
-// import UserInfoMenu from '../components/UserInfoMenu';
+import UserInfoMenu from '../components/UserInfoMenu';
 // import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
-// import RecordAccompanimentIos from '../components/ios/RecordAccompaniment';
+import RecordAccompanimentIos from '../components/ios/RecordAccompaniment';
 // import PreviewAccompanimentAndroid from '../components/android/PreviewAccompaniment';
-// import PreviewAccompanimentIos from '../components/ios/PreviewAccompaniment';
-// import buttonStyles from '../styles/button';
+import PreviewAccompanimentIos from '../components/ios/PreviewAccompaniment';
+import buttonStyles from '../styles/button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { toggleUserInfo } from '../redux/userInfo';
-// import SubscriptionOverlay from '../components/SubscriptionOverlay';
 import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
+import { deleteLocalFile } from '../services/utils';
 
 let timerIntervalId;
 let countdownIntervalId;
 
 const AccompanimentScreen = (props) => {
 
-  const [hasAudioPermission, setHasAudioPermission] = useState(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [record, setRecord] = useState(false);
   const [recording, setRecording] = useState(false);
   const [dataUri, setDataUri] = useState('');
@@ -44,49 +41,6 @@ const AccompanimentScreen = (props) => {
 
   const screenWidth = Math.round(Dimensions.get('window').width);
   const screenHeight = Math.round(Dimensions.get('window').height);
-
-  useEffect(() => {
-    async function getPermissions() {
-      const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
-      if (perms.permissions.audioRecording.granted) {
-        setHasAudioPermission(true);
-      } else {
-        const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-        if (status === 'granted') {
-          setHasAudioPermission(true);
-        } else {
-          Alert.alert(
-            `Oops...`,
-            'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
-            [
-              { text: 'OK', onPress: () => { } },
-            ],
-            { cancelable: false }
-          )
-          throw new Error('Audio permissions not granted');
-        }
-      }
-      if (perms.permissions.camera.granted) {
-        setHasCameraPermission(true);
-      } else {
-        const { status } = await Permissions.askAsync(Permissions.CAMERA);
-        if (status === 'granted') {
-          setHasCameraPermission(true);
-        } else {
-          Alert.alert(
-            `Oops...`,
-            'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
-            [
-              { text: 'OK', onPress: () => handleRefresh() },
-            ],
-            { cancelable: false }
-          )
-          throw new Error('Camera permissions not granted');
-        }
-      }
-    }
-    getPermissions();
-  }, []);
 
   useEffect(() => {
     const detectOrientation = () => {
@@ -112,6 +66,7 @@ const AccompanimentScreen = (props) => {
 
   const handleRefresh = () => {
     if (recording) cameraRef.stopRecording();
+    if (dataUri) deleteLocalFile(dataUri);
     clearInterval(timerIntervalId);
     clearInterval(countdownIntervalId);
     setCountdownActive(false);
@@ -178,18 +133,6 @@ const AccompanimentScreen = (props) => {
     setRecord(false);
   };
 
-  const handleDetailsExit = () => {
-    setRecord(false);
-    setShowDetailsModal(false);
-    setPreview(false);
-    setCountdown(3);
-  };
-
-  // const handleRedo = () => {
-  //   setPreview(false);
-  //   setCountdown(3);
-  // };
-
   const handleSave = () => {
     Alert.alert(
       'Agree to Terms',
@@ -237,134 +180,127 @@ const AccompanimentScreen = (props) => {
     props.toggleUserInfo(false);
   };
 
-  // console.log('props.user: ', props.user)
+  const handleRecordBaseTrack = () => {
+    setRecord(true);
+  }
 
   return (
-    <WelcomeFlow />
-  )
-
-  // return (
-  //   // user does not have an active subscription
-  //   !props.user.isSubscribed ? (
-  //     !props.dataLoaded ? (
-  //       <LoadingSpinner />
-  //     ) : (
-  //         // <FacebookSignin />
-  //         <WelcomeFlow />
-  //       )
-  //   ) : (
-  //       // ==> user has an active subscription
-  //       !preview ? (
-  //         // record video:
-  //         <View
-  //           style={styles.container}>
-  //           <SubscriptionOverlay
-  //             screenOrientation={screenOrientation}
-  //           />
-  //           {
-  //             record && hasAudioPermission && hasCameraPermission ? (
-  //               // user has clicked 'Record!' button
-  //               Platform.OS === 'android' ? (
-  //                 <RecordAccompanimentAndroid
-  //                   setCameraRef={setCameraRef}
-  //                   handleRecordExit={handleRecordExit}
-  //                   recording={recording}
-  //                   toggleRecord={toggleRecord}
-  //                   screenOrientation={screenOrientation}
-  //                   startCountdown={startCountdown}
-  //                   secs={secs}
-  //                   setSecs={setSecs}
-  //                   countdown={countdown}
-  //                   countdownActive={countdownActive}
-  //                   deviceType={deviceType}
-  //                 />
-  //               ) : (
-  //                   <RecordAccompanimentIos
-  //                     setCameraRef={setCameraRef}
-  //                     handleRecordExit={handleRecordExit}
-  //                     recording={recording}
-  //                     startCountdown={startCountdown}
-  //                     secs={secs}
-  //                     setSecs={setSecs}
-  //                     countdown={countdown}
-  //                     countdownActive={countdownActive}
-  //                     toggleRecord={toggleRecord}
-  //                     deviceType={deviceType}
-  //                   />
-  //                 )
-  //             ) : (
-  //                 // landing page ('Record!' button not clicked)
-  //                 <ScrollView
-  //                   style={styles.landingPage}>
-  //                   <SubscriptionOverlay />
-  //                   <View
-  //                     onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
-  //                     style={styles.logoAndButtonsContainer}>
-  //                     <Image
-  //                       source={require('../assets/images/duette-logo-HD.png')}
-  //                       style={styles.logo} />
-  //                     <View>
-  //                       <TouchableOpacity
-  //                         style={{
-  //                           ...buttonStyles.regularButton,
-  //                           width: deviceType === 2 ? screenWidth * 0.5 : '75%',
-  //                           height: 60,
-  //                         }}
-  //                         onPress={() => setRecord(true)}
-  //                       >
-  //                         <Text style={buttonStyles.regularButtonText}>Record a new base track</Text>
-  //                       </TouchableOpacity>
-  //                       <TouchableOpacity
-  //                         style={{
-  //                           ...buttonStyles.regularButton,
-  //                           width: deviceType === 2 ? screenWidth * 0.5 : '60%',
-  //                           height: 60,
-  //                         }}
-  //                         onPress={() => props.navigation.navigate('Duette')}
-  //                       >
-  //                         <Text style={buttonStyles.regularButtonText}>Record a Duette</Text>
-  //                       </TouchableOpacity>
-  //                     </View>
-  //                   </View>
-  //                   {
-  //                     props.displayUserInfo &&
-  //                     <UserInfoMenu />
-  //                   }
-  //                 </ScrollView>
-  //               )
-  //           }
-  //         </View >
-  //       ) : (
-  //           // preview accompaniment:
-  //           showDetailsModal ? (
-  //             // add accompaniment details
-  //             <DetailsModal
-  //               setPreview={setPreview}
-  //               setRecord={setRecord}
-  //               setShowDetailsModal={setShowDetailsModal}
-  //               handleDetailsExit={handleDetailsExit}
-  //               dataUri={dataUri} />
-  //           ) : (
-  //               // preview accompaniment
-  //               Platform.OS === 'android' ? (
-  //                 <PreviewAccompanimentAndroid
-  //                   dataUri={dataUri}
-  //                   handleSave={handleSave}
-  //                   handleRefresh={handleRefresh}
-  //                   screenOrientation={screenOrientation}
-  //                 />
-  //               ) : (
-  //                   <PreviewAccompanimentIos
-  //                     dataUri={dataUri}
-  //                     handleSave={handleSave}
-  //                     handleRefresh={handleRefresh}
-  //                     deviceType={deviceType}
-  //                   />
-  //                 )
-  //             )
-  //         )
-  //     )
-  // );
+    // user does not have an active subscription
+    !props.user.isSubscribed ? (
+      // !props.dataLoaded ? (
+      //   <LoadingSpinner />
+      // ) : (
+      // <FacebookSignin />
+      <WelcomeFlow />
+      // )
+    ) : (
+        // ==> user has an active subscription
+        !preview ? (
+          // record video:
+          <View
+            style={styles.container}>
+            {
+              record ? (
+                // user has clicked 'Record!' button
+                // Platform.OS === 'android' ? (
+                //   <RecordAccompanimentAndroid
+                //     setCameraRef={setCameraRef}
+                //     handleRecordExit={handleRecordExit}
+                //     recording={recording}
+                //     toggleRecord={toggleRecord}
+                //     screenOrientation={screenOrientation}
+                //     startCountdown={startCountdown}
+                //     secs={secs}
+                //     setSecs={setSecs}
+                //     countdown={countdown}
+                //     countdownActive={countdownActive}
+                //     deviceType={deviceType}
+                //   />
+                // ) : (
+                <RecordAccompanimentIos
+                  setCameraRef={setCameraRef}
+                  handleRecordExit={handleRecordExit}
+                  recording={recording}
+                  startCountdown={startCountdown}
+                  secs={secs}
+                  setSecs={setSecs}
+                  countdown={countdown}
+                  countdownActive={countdownActive}
+                  toggleRecord={toggleRecord}
+                  deviceType={deviceType}
+                />
+                // )
+              ) : (
+                  // landing page ('Record!' button not clicked)
+                  <ScrollView
+                    style={styles.landingPage}>
+                    <View
+                      onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
+                      style={styles.logoAndButtonsContainer}>
+                      <Image
+                        source={require('../assets/images/duette-logo-HD.png')}
+                        style={styles.logo} />
+                      <View>
+                        <TouchableOpacity
+                          style={{
+                            ...buttonStyles.regularButton,
+                            width: deviceType === 2 ? screenWidth * 0.5 : '75%',
+                            height: 60,
+                          }}
+                          onPress={handleRecordBaseTrack}
+                        >
+                          <Text style={buttonStyles.regularButtonText}>Record a new base track</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{
+                            ...buttonStyles.regularButton,
+                            width: deviceType === 2 ? screenWidth * 0.5 : '60%',
+                            height: 60,
+                          }}
+                          onPress={() => props.navigation.navigate('Duette')}
+                        >
+                          <Text style={buttonStyles.regularButtonText}>Record a Duette</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {
+                      props.displayUserInfo &&
+                      <UserInfoMenu />
+                    }
+                  </ScrollView>
+                )
+            }
+          </View >
+        ) : (
+            // preview accompaniment:
+            showDetailsModal ? (
+              // add accompaniment details
+              <DetailsModal
+                setPreview={setPreview}
+                setRecord={setRecord}
+                setShowDetailsModal={setShowDetailsModal}
+                dataUri={dataUri} />
+            ) : (
+                // preview accompaniment
+                // Platform.OS === 'android' ? (
+                //   <PreviewAccompanimentAndroid
+                //     dataUri={dataUri}
+                //     handleSave={handleSave}
+                //     handleRefresh={handleRefresh}
+                //     screenOrientation={screenOrientation}
+                //   />
+                // ) : (
+                <PreviewAccompanimentIos
+                  dataUri={dataUri}
+                  handleSave={handleSave}
+                  handleRefresh={handleRefresh}
+                  deviceType={deviceType}
+                />
+                // )
+              )
+          )
+      )
+  );
 };
 
 const styles = StyleSheet.create({

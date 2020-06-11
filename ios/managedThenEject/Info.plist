@@ -31,6 +31,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+  <key>LSApplicationQueriesSchemes</key>
+  <array>
+    <string>fbauth2</string>
+</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -51,7 +55,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Allow Duette to use the camera</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Allow Duette experiences to access your contacts</string>
+	<string>Allow Duette to access your contacts</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Allow Duette to use your location</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -63,9 +67,9 @@
 	<key>NSMotionUsageDescription</key>
 	<string>Allow Duette to access your device's accelerometer</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Give Duette periences permission to save photos</string>
+	<string>Give Duette permission to save photos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Give Duette periences permission to access your photos</string>
+	<string>Give Duette permission to access your photos</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>Allow Duette to access your reminders</string>
 	<key>UILaunchStoryboardName</key>
