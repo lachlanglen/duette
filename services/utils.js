@@ -53,7 +53,6 @@ export const handleLogout = async (displayUserInfo) => {
 };
 
 export const handleSubscribe = (userId) => {
-  // console.log('in handleSubscribe')
   Alert.alert(
     `Purchase`,
     "Here is where you will complete purchase flow.",

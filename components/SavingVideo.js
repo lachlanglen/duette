@@ -12,7 +12,7 @@ import UUIDGenerator from 'react-native-uuid-generator';
 import { toggleRequestReview } from '../redux/requestReview';
 import { deleteLocalFile } from '../services/utils';
 
-const experienceId = "@lachlanglen/managedThenEject";
+const experienceId = "@lachlan-glen-test/managedThenEject";
 
 const SavingVideo = (props) => {
 
@@ -45,22 +45,26 @@ const SavingVideo = (props) => {
   useEffect(() => {
     activateKeepAwake();
     createConnection();
-    // Notifications.addListener(handleNotification);
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+    Notifications.addNotificationResponseReceivedListener(async res => {
+      if (res.notification.request.content.data.body.type === 'base track') navigation.navigate('Duette')
+      else if (res.notification.request.content.data.body.type === 'duette') {
+        // check to see if review has been requested
+        // if it has, just navigate
+        // if it hasn't, update redux requestReview toggle to 'true' before navigating
+        const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
+        if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
+        navigation.navigate('My Duettes');
+      };
+    });
     handlePost();
   }, []);
-
-  // const handleNotification = async notification => {
-  //   Vibration.vibrate();
-  //   if (notification.data.type === 'base track') navigation.navigate('Duette')
-  //   else if (notification.data.type === 'duette') {
-  //     // check to see if review has been requested
-  //     // if it has, just navigate
-  //     // if it hasn't, update redux requestReview toggle to 'true' before navigating
-  //     const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
-  //     if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
-  //     navigation.navigate('My Duettes');
-  //   };
-  // };
 
   const createConnection = () => {
     ws = new WebSocket("wss://pi518guoyc.execute-api.us-east-2.amazonaws.com/test");

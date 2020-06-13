@@ -63,7 +63,7 @@ const DuetteScreen = (props) => {
     if (freeDiskStorageMb < 100) {
       Alert.alert(
         'Not enough space available',
-        `You don't have enough free space available on your device to record a Duette. Please clear up approx. ${Math.ceil(100 - freeDiskStorageMb)}MB of space and try again!`,
+        `You don't have enough free space on your device to record a Duette. Please clear up approx. ${Math.ceil(100 - freeDiskStorageMb)}MB of space and try again!`,
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -98,7 +98,6 @@ const DuetteScreen = (props) => {
   }
 
   const handleUse = (id) => {
-    console.log('in handleUse')
     loadVideo(id);
   };
 

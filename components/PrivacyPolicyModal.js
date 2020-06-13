@@ -11,7 +11,7 @@ const PrivacyPolicyModal = (props) => {
   return (
     <View>
       <Modal
-        supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       >
         <View style={styles.container}>
           <Text style={styles.titleTextBlue}>Our Privacy Policy</Text>

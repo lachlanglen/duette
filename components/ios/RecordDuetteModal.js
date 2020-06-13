@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
 import { View, Modal, StyleSheet, TouchableOpacity, Text, Dimensions, Alert } from 'react-native';
+import { Icon } from 'react-native-elements';
 import { Video } from 'expo-av';
 import { Camera } from 'expo-camera';
 import * as Device from 'expo-device';
@@ -37,6 +38,7 @@ const RecordDuetteModal = (props) => {
   const [deviceType, setDeviceType] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [hardRefresh, setHardRefresh] = useState(false);
+  const [cameraType, setCameraType] = useState('front');
   // const [cancel, setCancel] = useState(false);
 
   // const cameraRef = useRef(null);
@@ -108,7 +110,17 @@ const RecordDuetteModal = (props) => {
   };
 
   const handleModalOrientationChange = (ev) => {
-    setScreenOrientation(ev.nativeEvent.orientation.toUpperCase())
+    setScreenOrientation(ev.nativeEvent.orientation.toUpperCase());
+    if (ev.nativeEvent.orientation === 'landscape' && cameraType === 'back') {
+      Alert.alert(
+        'Not supported',
+        "Outward-facing camera is only supported in portrait mode. If you want to flip the camera, please rotate your device.",
+        [
+          { text: 'OK', onPress: () => setCameraType('front') },
+        ],
+        { cancelable: false }
+      );
+    }
   };
 
   const handleCancel = async () => {
@@ -184,6 +196,11 @@ const RecordDuetteModal = (props) => {
     }
   }, [countdownActive, countdown]);
 
+  const toggleCameraType = () => {
+    if (cameraType === 'front') setCameraType('back');
+    else if (cameraType === 'back') setCameraType('front');
+  }
+
   return (
     <View style={styles.container}>
       {
@@ -242,7 +259,7 @@ const RecordDuetteModal = (props) => {
                               width: screenOrientation === 'LANDSCAPE' ? screenHeight / 9 * 8 : screenWidth / 2,
                               height: screenOrientation === 'LANDSCAPE' ? screenHeight : screenWidth / 16 * 9,
                             }}
-                            type={Camera.Constants.Type.front}
+                            type={cameraType === 'front' ? Camera.Constants.Type.front : Camera.Constants.Type.back}
                             ref={ref => setCameraRef(ref)}                        >
                             <View>
                               <TouchableOpacity
@@ -298,6 +315,22 @@ const RecordDuetteModal = (props) => {
                                       marginBottom: screenOrientation === 'LANDSCAPE' ? 10 : 6,
                                     }} />
                                 </TouchableOpacity>
+                                {
+                                  screenOrientation === 'PORTRAIT' && !recording &&
+                                  <View style={{
+                                    position: 'absolute',
+                                    bottom: 6,
+                                    right: 6,
+                                  }}>
+                                    <Icon
+                                      onPress={toggleCameraType}
+                                      name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
+                                      type="material"
+                                      color="black"
+                                      size={26}
+                                    />
+                                  </View>
+                                }
                               </View>
                             }
                             {

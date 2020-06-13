@@ -325,7 +325,7 @@ const ReviewDuette = (props) => {
     <View style={styles.container}>
       <Modal
         onOrientationChange={handleModalOrientationChange}
-        supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       >
         {
           saving ? (

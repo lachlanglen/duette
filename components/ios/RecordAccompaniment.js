@@ -1,7 +1,8 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View, Dimensions, Modal } from 'react-native';
+import { Image, Text, TouchableOpacity, View, Dimensions, Modal, Alert } from 'react-native';
+import { Icon } from 'react-native-elements';
 import { Camera } from 'expo-camera';
 import { toggleUpgradeOverlay } from '../../redux/upgradeOverlay';
 
@@ -24,9 +25,20 @@ const RecordAccompaniment = (props) => {
   let screenHeight = Math.floor(Dimensions.get('window').height);
 
   const [screenOrientation, setScreenOrientation] = useState('');
+  const [cameraType, setCameraType] = useState('front');
 
   const handleModalOrientationChange = (ev) => {
-    setScreenOrientation(ev.nativeEvent.orientation.toUpperCase())
+    setScreenOrientation(ev.nativeEvent.orientation.toUpperCase());
+    if (ev.nativeEvent.orientation === 'landscape' && cameraType === 'back') {
+      Alert.alert(
+        'Not supported',
+        "Outward-facing camera is only supported in portrait mode. If you want to flip the camera, please rotate your device.",
+        [
+          { text: 'OK', onPress: () => setCameraType('front') },
+        ],
+        { cancelable: false }
+      );
+    }
   };
 
   const getColor = () => {
@@ -40,11 +52,16 @@ const RecordAccompaniment = (props) => {
     props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
   };
 
+  const toggleCameraType = () => {
+    if (cameraType === 'front') setCameraType('back');
+    else if (cameraType === 'back') setCameraType('front');
+  }
+
   return (
     <Modal
       animationType="fade"
       onOrientationChange={e => handleModalOrientationChange(e)}
-      supportedOrientations={['portrait', 'portrait-upside-down', 'landscape-right']}
+      supportedOrientations={['portrait', 'landscape-right']}
     >
       <View style={{
         flexDirection: screenOrientation === 'PORTRAIT' ? 'column' : 'row',
@@ -63,7 +80,7 @@ const RecordAccompaniment = (props) => {
               width: '100%',
               height: '100%'
             }}
-            type={Camera.Constants.Type.front}
+            type={cameraType === 'front' ? Camera.Constants.Type.front : Camera.Constants.Type.back}
             ref={ref => setCameraRef(ref)}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <TouchableOpacity
@@ -171,11 +188,11 @@ const RecordAccompaniment = (props) => {
                 flex: 1,
                 backgroundColor: 'transparent',
                 flexDirection: 'column',
-                justifyContent: 'flex-end',
-              }}>
+                justifyContent: 'flex-end'
+              }}
+            >
               <Text style={{
                 color: 'red',
-                // fontSize: 13,
                 fontWeight: 'bold',
                 textAlign: 'center',
                 textTransform: 'uppercase',
@@ -197,6 +214,22 @@ const RecordAccompaniment = (props) => {
                 }}
               />
             </View>
+            {
+              screenOrientation === 'PORTRAIT' && !recording &&
+              <View style={{
+                position: 'absolute',
+                bottom: 10,
+                right: 10,
+              }}>
+                <Icon
+                  onPress={toggleCameraType}
+                  name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
+                  type="material"
+                  color="black"
+                  size={30}
+                />
+              </View>
+            }
           </Camera>
         </View>
       </View>

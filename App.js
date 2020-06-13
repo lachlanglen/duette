@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import * as Notifications from "expo-notifications";
+import * as SecureStore from 'expo-secure-store';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import store from './redux/store';
 import { Provider } from 'react-redux';
@@ -24,19 +25,6 @@ console.disableYellowBox = true;
 export default function App(props) {
   const isLoadingComplete = useCachedResources();
   const containerRef = React.useRef();
-
-  React.useEffect(() => {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-      }),
-    });
-    Notifications.addNotificationReceivedListener(n => {
-      console.log('notification: ', n)
-    });
-  }, [])
 
   if (!isLoadingComplete) {
     return null;

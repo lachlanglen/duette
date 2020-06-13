@@ -59,7 +59,7 @@ const DetailsModal = (props) => {
         !showAddEmailModal ? (
           <View style={styles.container}>
             <Modal
-              supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+              supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
             >
               <KeyboardAwareScrollView>
                 <Form
