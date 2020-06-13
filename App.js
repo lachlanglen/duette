@@ -36,7 +36,6 @@ export default function App(props) {
     Notifications.addNotificationReceivedListener(n => {
       console.log('notification: ', n)
     });
-    console.log('notification listeners set!')
   }, [])
 
   if (!isLoadingComplete) {

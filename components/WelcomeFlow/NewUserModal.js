@@ -12,8 +12,8 @@ const NewUserModal = (props) => {
 
   return (
     <Modal>
-      <ScrollView
-        contentContainerStyle={styles.container}>
+      <View
+        style={styles.container}>
         <Image
           source={require('../../assets/images/duette-logo-HD.png')}
           style={styles.logo} />
@@ -48,7 +48,7 @@ const NewUserModal = (props) => {
             marginTop: 10,
           }}>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </Modal>
   )
 };

@@ -57,35 +57,48 @@ const DuetteScreen = (props) => {
 
   const loadVideo = async (id) => {
     // TODO: show error if not enough storage available?
-    setLoading({ isLoading: true, id });
-    if (previewVid) setPreviewVid('');
-    props.setVideo(id);
-    try {
-      if (Platform.OS === 'ios') {
-        const { uri } = await FileSystem.downloadAsync(
-          getAWSVideoUrl(id),
-          FileSystem.documentDirectory + `${id}.mov`
-        );
-        setBaseTrackUri(uri);
-        setLoading({ isLoading: false, id: '' });
-      }
-      setShowRecordDuetteModal(true);
-    } catch (e) {
+    const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
+    const freeDiskStorageMb = freeDiskStorage / 1000000;
+    console.log('freeDiskStorageMb: ', freeDiskStorageMb)
+    if (freeDiskStorageMb < 100) {
       Alert.alert(
-        'Oops...',
-        `We encountered a problem downloading this base track. Please check your internet connection and try again.`,
+        'Not enough space available',
+        `You don't have enough free space available on your device to record a Duette. Please clear up approx. ${Math.ceil(100 - freeDiskStorageMb)}MB of space and try again!`,
         [
-          { text: 'OK', onPress: () => setLoading({ isLoading: false, id: '' }) },
+          { text: 'OK', onPress: () => { } },
         ],
         { cancelable: false }
       );
-      const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
-      const freeDiskStorageMb = freeDiskStorage / 1000000;
-      throw new Error(`error in loadVideo. ${freeDiskStorageMb}MB available. error: `, e)
+    } else {
+      setLoading({ isLoading: true, id });
+      if (previewVid) setPreviewVid('');
+      props.setVideo(id);
+      try {
+        if (Platform.OS === 'ios') {
+          const { uri } = await FileSystem.downloadAsync(
+            getAWSVideoUrl(id),
+            FileSystem.documentDirectory + `${id}.mov`
+          );
+          setBaseTrackUri(uri);
+          setLoading({ isLoading: false, id: '' });
+        }
+        setShowRecordDuetteModal(true);
+      } catch (e) {
+        Alert.alert(
+          'Oops...',
+          `We encountered a problem downloading this base track. Please check your internet connection and try again.`,
+          [
+            { text: 'OK', onPress: () => setLoading({ isLoading: false, id: '' }) },
+          ],
+          { cancelable: false }
+        );
+        throw new Error(`error in loadVideo. ${freeDiskStorageMb}MB available. error: `, e)
+      }
     }
   }
 
   const handleUse = (id) => {
+    console.log('in handleUse')
     loadVideo(id);
   };
 
@@ -108,11 +121,11 @@ const DuetteScreen = (props) => {
 
   return (
     !props.user.isSubscribed ? (
-      // !props.dataLoaded ? (
-      //   <LoadingSpinner />
-      // ) : (
-      <WelcomeFlow />
-      // )
+      !props.dataLoaded ? (
+        <LoadingSpinner />
+      ) : (
+          <WelcomeFlow />
+        )
     ) : (
         showEditDetailsModal && props.selectedVideo.id ? (
           <EditDetailsModal

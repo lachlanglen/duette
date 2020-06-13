@@ -1,11 +1,14 @@
 /* eslint-disable max-statements */
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { Button, Image, View, Dimensions, StyleSheet, TouchableOpacity, Text, Platform, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { connect } from 'react-redux'
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Device from 'expo-device';
 import { Camera } from 'expo-camera';
+import * as FileSystem from 'expo-file-system';
+import * as Permissions from 'expo-permissions';
+// import * as Notifications from "expo-notifications";
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import DetailsModal from '../components/DetailsModal';
 import { fetchVideos } from '../redux/videos';
@@ -26,6 +29,8 @@ let countdownIntervalId;
 
 const AccompanimentScreen = (props) => {
 
+  const [hasAudioPermission, setHasAudioPermission] = useState(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [record, setRecord] = useState(false);
   const [recording, setRecording] = useState(false);
   const [dataUri, setDataUri] = useState('');
@@ -180,19 +185,117 @@ const AccompanimentScreen = (props) => {
     props.toggleUserInfo(false);
   };
 
-  const handleRecordBaseTrack = () => {
+  const handleRecordBaseTrack = async () => {
+    const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
+    const freeDiskStorageMb = freeDiskStorage / 1000000;
+    if (freeDiskStorageMb < 50) {
+      Alert.alert(
+        'Not enough space available',
+        `You don't have enough free space available on your device to record a base track. Please clear up approx. ${Math.ceil(50 - freeDiskStorageMb)}MB of space and try again!`,
+        [
+          { text: 'OK', onPress: () => { } },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      getPermissionsAndRecord();
+    }
+  };
+
+  const getPermissionsAndRecord = async () => {
+    const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
+    if (perms.permissions.audioRecording.granted) {
+      setHasAudioPermission(true);
+    } else {
+      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+      if (status === 'granted') {
+        setHasAudioPermission(true);
+      } else {
+        Alert.alert(
+          `Oops...`,
+          'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
+          [
+            { text: 'OK', onPress: () => { } },
+          ],
+          { cancelable: false }
+        )
+        throw new Error('Audio permissions not granted');
+      }
+    }
+    if (perms.permissions.camera.granted) {
+      setHasCameraPermission(true);
+    } else {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA);
+      if (status === 'granted') {
+        setHasCameraPermission(true);
+      } else {
+        Alert.alert(
+          `Oops...`,
+          'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
+          [
+            { text: 'OK', onPress: () => handleRefresh() },
+          ],
+          { cancelable: false }
+        )
+        throw new Error('Camera permissions not granted');
+      }
+    }
     setRecord(true);
-  }
+  };
+
+  // useEffect(() => {
+  //   Notifications.setNotificationHandler({
+  //     handleNotification: async () => ({
+  //       shouldShowAlert: true,
+  //       shouldPlaySound: true,
+  //       shouldSetBadge: true,
+  //     }),
+  //   });
+  //   Notifications.addNotificationReceivedListener(n => {
+  //     console.log('notification: ', n)
+  //   });
+  // }, []);
+
+  // const experienceId = "@lachlanglen/managedThenEject";
+
+  // const registerForPushNotificationsAsync = async () => {
+  //   await Notifications.requestPermissionsAsync();
+  //   try {
+  //     const token = await Notifications.getExpoPushTokenAsync({
+  //       experienceId,
+  //     });
+  //     console.log('token: ', token.data);
+  //     const message = {
+  //       to: token.data,
+  //       sound: 'default',
+  //       title: 'Original Title',
+  //       body: 'And here is the body!',
+  //       data: { data: 'goes here' },
+  //       _displayInForeground: true,
+  //     };
+  //     const res = await fetch('https://exp.host/--/api/v2/push/send', {
+  //       method: 'POST',
+  //       headers: {
+  //         Accept: 'application/json',
+  //         'Accept-encoding': 'gzip, deflate',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(message),
+  //     });
+  //     console.log('sent! res: ', res)
+  //   } catch (e) {
+  //     console.log('error getting push token: ', e)
+  //   }
+  // };
 
   return (
     // user does not have an active subscription
     !props.user.isSubscribed ? (
-      // !props.dataLoaded ? (
-      //   <LoadingSpinner />
-      // ) : (
-      // <FacebookSignin />
-      <WelcomeFlow />
-      // )
+      !props.dataLoaded ? (
+        <LoadingSpinner />
+      ) : (
+          <WelcomeFlow />
+        )
     ) : (
         // ==> user has an active subscription
         !preview ? (
@@ -261,6 +364,10 @@ const AccompanimentScreen = (props) => {
                         >
                           <Text style={buttonStyles.regularButtonText}>Record a Duette</Text>
                         </TouchableOpacity>
+                        {/* <Button
+                          onPress={registerForPushNotificationsAsync}
+                          title="Register for notifications"
+                        /> */}
                       </View>
                     </View>
                     {

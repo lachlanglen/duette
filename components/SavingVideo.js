@@ -10,6 +10,7 @@ import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import UUIDGenerator from 'react-native-uuid-generator';
 import { toggleRequestReview } from '../redux/requestReview';
+import { deleteLocalFile } from '../services/utils';
 
 const experienceId = "@lachlanglen/managedThenEject";
 
@@ -18,6 +19,7 @@ const SavingVideo = (props) => {
   const {
     dataUri,
     duetteUri,
+    baseTrackUri,
     title,
     composer,
     songKey,
@@ -132,6 +134,8 @@ const SavingVideo = (props) => {
         name: props.user.name.split(' ')[0],
         sendEmails: props.user.sendEmails,
       }));
+      deleteLocalFile(duetteUri);
+      deleteLocalFile(baseTrackUri);
     } else {
       ws.send(JSON.stringify({
         type: 'base track',
@@ -149,6 +153,7 @@ const SavingVideo = (props) => {
         name: props.user.name.split(' ')[0],
         sendEmails: props.user.sendEmails,
       }));
+      deleteLocalFile(dataUri);
     };
     deactivateKeepAwake();
     handleExit();
@@ -161,7 +166,6 @@ const SavingVideo = (props) => {
   const handlePost = async () => {
     const uuid = await UUIDGenerator.getRandomUUID();
     tempVidId = uuid.toLowerCase();
-    console.log('tempVidId: ', tempVidId)
     let uriParts = type === 'base track' ? dataUri.split('.') : duetteUri.split('.');
     let fileType = uriParts[uriParts.length - 1];
     const vidFile = {

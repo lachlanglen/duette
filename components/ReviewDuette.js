@@ -331,6 +331,7 @@ const ReviewDuette = (props) => {
           saving ? (
             <SavingVideo
               type="duette"
+              baseTrackUri={baseTrackUri}
               duetteUri={duetteUri}
               customOffset={customOffset}
               baseTrackVolume={baseTrackVolume}

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View, Dimensions, Modal } from 'react-native';
 import { Camera } from 'expo-camera';
-import * as Permissions from 'expo-permissions';
 import { toggleUpgradeOverlay } from '../../redux/upgradeOverlay';
 
 // iOS
@@ -25,51 +24,6 @@ const RecordAccompaniment = (props) => {
   let screenHeight = Math.floor(Dimensions.get('window').height);
 
   const [screenOrientation, setScreenOrientation] = useState('');
-  const [hasAudioPermission, setHasAudioPermission] = useState(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState(null);
-
-  useEffect(() => {
-    async function getPermissions() {
-      const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
-      if (perms.permissions.audioRecording.granted) {
-        setHasAudioPermission(true);
-      } else {
-        const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-        if (status === 'granted') {
-          setHasAudioPermission(true);
-        } else {
-          Alert.alert(
-            `Oops...`,
-            'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
-            [
-              { text: 'OK', onPress: () => { } },
-            ],
-            { cancelable: false }
-          )
-          throw new Error('Audio permissions not granted');
-        }
-      }
-      if (perms.permissions.camera.granted) {
-        setHasCameraPermission(true);
-      } else {
-        const { status } = await Permissions.askAsync(Permissions.CAMERA);
-        if (status === 'granted') {
-          setHasCameraPermission(true);
-        } else {
-          Alert.alert(
-            `Oops...`,
-            'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
-            [
-              { text: 'OK', onPress: () => handleRefresh() },
-            ],
-            { cancelable: false }
-          )
-          throw new Error('Camera permissions not granted');
-        }
-      }
-    }
-    getPermissions();
-  }, []);
 
   const handleModalOrientationChange = (ev) => {
     setScreenOrientation(ev.nativeEvent.orientation.toUpperCase())

@@ -30,6 +30,7 @@
 		D92B04A5B4DE4BF5B6F01D5E /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8DACD749D9454A10A7681FBF /* SimpleLineIcons.ttf */; };
 		E1179C99841A4203A4C3B52F /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0DB712CB85CC4B23879FF158 /* MaterialCommunityIcons.ttf */; };
 		F52CCF1666C94A9FB5E1F9CE /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AADBF303CEA1462FA61E6CC8 /* Foundation.ttf */; };
+		FC28B79D2492B8980012BA36 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC28B79C2492B8980012BA36 /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +66,7 @@
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		EF0155D05D2A4B7E95B5F326 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		F7F802AD23E7403AB489DF17 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
+		FC28B79C2492B8980012BA36 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DE4DAD41476765101945408 /* libPods-managedThenEject.a in Frameworks */,
+				FC28B79D2492B8980012BA36 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +101,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FC28B79C2492B8980012BA36 /* StoreKit.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
@@ -394,7 +398,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = managedThenEject/expo.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = YAQVDQB8PB;
 				INFOPLIST_FILE = managedThenEject/Info.plist;
@@ -453,7 +457,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = test.expo.expo;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duette.duette;
 				PRODUCT_NAME = expo;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -465,7 +469,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = managedThenEject/expo.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = YAQVDQB8PB;
 				INFOPLIST_FILE = managedThenEject/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -474,7 +478,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = test.expo.expo;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duette.duette;
 				PRODUCT_NAME = expo;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
