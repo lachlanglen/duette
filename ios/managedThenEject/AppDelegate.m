@@ -14,6 +14,10 @@
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
 #import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
 #import <EXScreenOrientation/EXScreenOrientationViewController.h>
+// #import <EXSplashScreen/EXSplashScreenService.h>
+#import <UMCore/UMModuleRegistryProvider.h>
+
+#import "RNSplashScreen.h"
 
 @interface AppDelegate ()
 
@@ -41,6 +45,8 @@
 
   [super application:application didFinishLaunchingWithOptions:launchOptions];
 
+  [RNSplashScreen show];
+
   return YES;
 }
 
@@ -54,6 +60,9 @@
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+
+  // EXSplashScreenService *splashScreenService = (EXSplashScreenService *)[UMModuleRegistryProvider getSingletonModuleForClass:[EXSplashScreenService class]];
+  // [splashScreenService showSplashScreenFor:rootViewController];
 
   return bridge;
 }

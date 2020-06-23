@@ -1,6 +1,6 @@
 import React, { createRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Input } from 'react-native-elements';
 import { clearVideo } from '../redux/singleVideo';
 import buttonStyles from '../styles/button';
@@ -86,7 +86,7 @@ const Form = (props) => {
     } else {
       Alert.alert(
         'Too long',
-        "Composer must be 20 characters or less",
+        "'Written by' must be 20 characters or less",
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -134,21 +134,7 @@ const Form = (props) => {
         onChangeText={val => handleSetTitle(val)}
         value={title}
         label="Title (required)"
-        placeholder="e.g. Barcarolle" />
-      <Input
-        labelStyle={styles.labelText}
-        containerStyle={styles.inputField}
-        onChangeText={val => handleSetComposer(val)}
-        value={composer}
-        label="Composer (optional, but recommended)"
-        placeholder="e.g. Offenbach" />
-      <Input
-        labelStyle={styles.labelText}
-        containerStyle={styles.inputField}
-        onChangeText={val => handleSetSongKey(val)}
-        value={songKey}
-        label="Key (optional, but recommended)"
-        placeholder="e.g. B-flat major" />
+        placeholder="e.g. 'Barcarolle' or 'Truth Hurts'" />
       <Input
         labelStyle={styles.labelText}
         containerStyle={styles.inputField}
@@ -156,6 +142,20 @@ const Form = (props) => {
         value={performer}
         label="Performer (required)"
         placeholder="Enter your name here!" />
+      <Input
+        labelStyle={styles.labelText}
+        containerStyle={styles.inputField}
+        onChangeText={val => handleSetComposer(val)}
+        value={composer}
+        label="Who wrote it? (optional)"
+        placeholder="e.g. 'Offenbach' or 'Lizzo'" />
+      <Input
+        labelStyle={styles.labelText}
+        containerStyle={styles.inputField}
+        onChangeText={val => handleSetSongKey(val)}
+        value={songKey}
+        label="Key (optional)"
+        placeholder="e.g. B-flat major" />
       <Input
         labelStyle={styles.labelText}
         containerStyle={styles.inputField}
@@ -194,7 +194,7 @@ const Form = (props) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 50,
+    marginTop: 80,
     marginHorizontal: 20,
   },
   titleText: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#0047B9',
-    marginBottom: 20
+    marginBottom: 40
   },
   labelText: {
     color: '#187795',

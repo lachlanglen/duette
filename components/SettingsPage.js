@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Text, View, SafeAreaView, FlatList, StyleSheet, Dimensions, TouchableOpacity, Platform, Alert, Switch, ScrollView } from 'react-native';
+import { Linking, Text, View, SafeAreaView, FlatList, StyleSheet, Dimensions, TouchableOpacity, Platform, Alert, Switch, ScrollView } from 'react-native';
 import { Input } from 'react-native-elements';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Device from 'expo-device';
@@ -9,6 +9,7 @@ import PrivacyPolicyModal from './PrivacyPolicyModal';
 import { validate } from 'validate.js';
 import { toggleUpgradeOverlay } from '../redux/upgradeOverlay';
 import { updateUser } from '../redux/user';
+import { clearError } from '../redux/error';
 
 const SettingsPage = (props) => {
   const [screenOrientation, setScreenOrientation] = useState('');
@@ -18,6 +19,7 @@ const SettingsPage = (props) => {
   const [error, setError] = useState(null);
   const [switchValue, setSwitchValue] = useState(props.user.email ? props.user.sendEmails : false);
   const [deviceType, setDeviceType] = useState(null);
+  const [updatedEmailSubmitted, setUpdatedEmailSubmitted] = useState(false);
 
   let screenWidth = Math.round(Dimensions.get('window').width);
   let screenHeight = Math.round(Dimensions.get('window').height);
@@ -44,9 +46,44 @@ const SettingsPage = (props) => {
     getDeviceType();
   }, []);
 
-  const handleViewPrivacyPolicy = () => {
-    setShowPrivacyPolicyModal(true);
+  useEffect(() => {
+    if (updatedEmailSubmitted && props.error.errorRegistered) {
+      if (!props.error.isError) {
+        Alert.alert(
+          'Updated!',
+          "Your email has been successfully updated.",
+          [
+            { text: 'OK', onPress: () => handleEmailUpdateDone() },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        Alert.alert(
+          'Oops...',
+          `${email} is already registered with another Duette account. Please use a different email address.`,
+          [
+            { text: 'OK', onPress: () => handleEmailUpdateDone() },
+          ],
+          { cancelable: false }
+        );
+      }
+    }
+  });
+
+  const handleEmailUpdateDone = () => {
+    setUpdatedEmailSubmitted(false);
+    props.clearError();
+    setEditEmail(false);
+  }
+
+  const handleViewPrivacyPolicy = async () => {
+    // setShowPrivacyPolicyModal(true);
+    await Linking.openURL('http://duette.app/privacy-policy');
   };
+
+  const handleViewTermsOfUse = async () => {
+    await Linking.openURL('http://duette.app/terms-of-use');
+  }
 
   const constraints = {
     emailAddress: {
@@ -65,8 +102,8 @@ const SettingsPage = (props) => {
   };
 
   const handleSaveEmail = () => {
-    props.updateUser(props.user.id, { email })
-    setEditEmail(false);
+    setUpdatedEmailSubmitted(true);
+    props.updateUser(props.user.id, { email });
   };
 
   const handleValChange = (val) => {
@@ -95,7 +132,9 @@ const SettingsPage = (props) => {
   };
 
   const handleCancel = () => {
+    setUpdatedEmailSubmitted(false);
     setError(null);
+    props.clearError();
     setEditEmail(false);
   };
 
@@ -107,6 +146,17 @@ const SettingsPage = (props) => {
   const handleToggleUpgradeOverlay = () => {
     props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
   };
+
+  const handleManageSubscription = () => {
+    Alert.alert(
+      'Instructions',
+      "To manage your subscription or turn off auto-renewal, go to Settings -> iTunes and App Store, select your Apple ID and then 'View Apple ID', then select 'Subscriptions'.",
+      [
+        { text: 'Got it!', onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  }
 
   return (
     showPrivacyPolicyModal ? (
@@ -120,7 +170,11 @@ const SettingsPage = (props) => {
             <Text style={{
               ...styles.tierText,
               marginBottom: 0,
-            }}>Free Trial</Text>
+            }}>Unlimited ($1.99/month)</Text>
+            <TouchableOpacity
+              onPress={handleManageSubscription}>
+              <Text style={{ color: '#0047B9', marginTop: 10, fontSize: 16 }}>Manage Subscription</Text>
+            </TouchableOpacity>
             {/* <Text style={styles.bulletText}>{'\u2022'} 3.5 min video length</Text>
             <Text style={styles.bulletText}>{'\u2022'} Save videos with Duette logo</Text> */}
             {/* <View style={{
@@ -167,6 +221,7 @@ const SettingsPage = (props) => {
               {
                 !editEmail &&
                 <TouchableOpacity
+                  disabled={updatedEmailSubmitted}
                   onPress={handleEditEmail}>
                   <Text style={styles.editText}>Edit</Text>
                 </TouchableOpacity>
@@ -182,7 +237,7 @@ const SettingsPage = (props) => {
               <View style={{ flexDirection: 'row' }}>
                 <TouchableOpacity
                   onPress={handleValidateEmail}>
-                  <Text style={styles.saveText}>Save</Text>
+                  <Text style={styles.saveText}>{updatedEmailSubmitted ? 'Saving...' : 'Save'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleCancel}>
@@ -211,15 +266,29 @@ const SettingsPage = (props) => {
               />
             </View>
             <Text style={styles.titleTextBlue}>Contact Us:</Text>
-            <Text style={styles.emailText}>support@duette.app</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('mailto:support@duette.app')}
+            >
+              <Text style={styles.emailText}>support@duette.app</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={handleViewPrivacyPolicy}
               style={{
                 ...buttonStyles.regularButton,
                 width: deviceType === 2 ? screenWidth / 2 : '75%',
-                margin: 20,
+                marginTop: 30,
+                marginBottom: 20,
               }}>
               <Text style={buttonStyles.regularButtonText}>View Privacy Policy</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleViewTermsOfUse}
+              style={{
+                ...buttonStyles.regularButton,
+                width: deviceType === 2 ? screenWidth / 2 : '75%',
+                // margin: 20,
+              }}>
+              <Text style={buttonStyles.regularButtonText}>View Terms of Use</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -255,7 +324,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     fontWeight: 'bold',
-    textTransform: 'uppercase',
+    // textTransform: 'uppercase',
     // color: '#0047B9',
   },
   bulletText: {
@@ -306,10 +375,11 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapState = ({ user, displayUpgradeOverlay }) => {
+const mapState = ({ user, displayUpgradeOverlay, error }) => {
   return {
     user,
     displayUpgradeOverlay,
+    error,
   }
 };
 
@@ -317,6 +387,7 @@ const mapDispatch = dispatch => {
   return {
     updateUser: (id, body) => dispatch(updateUser(id, body)),
     toggleUpgradeOverlay: bool => dispatch(toggleUpgradeOverlay(bool)),
+    clearError: () => dispatch(clearError()),
   }
 }
 

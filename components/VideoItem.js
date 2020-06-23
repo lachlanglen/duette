@@ -147,7 +147,7 @@ const VideoItem = (props) => {
       </Text>
       <Text
         style={styles.details}>
-        Composer: {composer ? composer : 'Unknown'}
+        Written by: {composer ? composer : 'Unknown'}
       </Text>
       <Text
         style={styles.details}>
@@ -163,6 +163,7 @@ const VideoItem = (props) => {
       {
         notes ? (
           <TouchableOpacity
+            disabled={loading.isLoading && loading.id === id}
             onPress={handleShowNotes}
             style={{
               alignItems: 'center',
@@ -185,6 +186,7 @@ const VideoItem = (props) => {
           )
       }
       <TouchableOpacity
+        disabled={loading.isLoading && loading.id === id}
         onPress={() => handleUse(id)}
         style={{
           ...styles.button,

@@ -102,8 +102,8 @@ const RecordAccompaniment = (props) => {
                     recording &&
                     <View
                       style={{
-                        width: 10,
-                        height: 10,
+                        width: 11,
+                        height: 11,
                         backgroundColor: 'red',
                         borderRadius: 50,
                         marginLeft: 7,
@@ -175,7 +175,8 @@ const RecordAccompaniment = (props) => {
                 }}>
                 <Text
                   style={{
-                    color: '#0047B9',
+                    // color: '#0047B9',
+                    color: 'white',
                     fontSize: deviceType === 2 ? 200 : 110,
                   }}
                 >
@@ -204,7 +205,7 @@ const RecordAccompaniment = (props) => {
                 disabled={countdownActive}
                 style={{
                   borderWidth: 5,
-                  borderColor: recording ? 'darkred' : 'darkred',
+                  borderColor: 'darkred',
                   alignSelf: 'center',
                   width: 50,
                   height: 50,
@@ -226,7 +227,7 @@ const RecordAccompaniment = (props) => {
                   name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
                   type="material"
                   color="black"
-                  size={30}
+                  size={deviceType === 2 ? 40 : 30}
                 />
               </View>
             }

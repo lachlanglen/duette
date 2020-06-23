@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { SafeAreaView, Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
@@ -59,7 +59,7 @@ const DetailsModal = (props) => {
         !showAddEmailModal ? (
           <View style={styles.container}>
             <Modal
-              supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
+              supportedOrientations={['portrait', 'landscape', 'landscape-right']}
             >
               <KeyboardAwareScrollView>
                 <Form

@@ -10,6 +10,7 @@ const MyDuettes = (props) => {
   const [selectedDuette, setSelectedDuette] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [screenOrientation, setScreenOrientation] = useState('');
+  const [duettesLoaded, setDuettesLoaded] = useState(false);
 
   let screenWidth = Math.round(Dimensions.get('window').width);
   let screenHeight = Math.round(Dimensions.get('window').height);
@@ -32,7 +33,8 @@ const MyDuettes = (props) => {
   });
 
   useEffect(() => {
-    props.setDuettes(props.user.id)
+    props.setDuettes(props.user.id);
+    setDuettesLoaded(true);
   }, []);
 
   const handleToggleUpgradeOverlay = () => {
@@ -75,11 +77,19 @@ const MyDuettes = (props) => {
             />
           </View>
         ) : (
-            <View>
-              <Text style={styles.text}>
-                No videos to display
+            !duettesLoaded ? (
+              <View>
+                <Text style={styles.text}>
+                  Loading...
               </Text>
-            </View>
+              </View>
+            ) : (
+                <View>
+                  <Text style={styles.text}>
+                    No videos to display
+                  </Text>
+                </View>
+              )
           )
       }
     </SafeAreaView>

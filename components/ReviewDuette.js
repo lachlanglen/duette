@@ -1,9 +1,10 @@
 /* eslint-disable max-statements */
 /* eslint-disable complexity */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { View, Modal, StyleSheet, Platform } from 'react-native';
+import { View, Modal, StyleSheet, Platform, Alert } from 'react-native';
 import PreviewAndSync from './PreviewAndSync';
+import * as Device from 'expo-device';
 import { postDuette } from '../redux/duettes';
 import { deleteLocalFile } from '../services/utils';
 import SavingVideo from './SavingVideo';
@@ -40,19 +41,44 @@ const ReviewDuette = (props) => {
   const [duetteVolume, setDuetteVolume] = useState(1);
   const [showAddEmailModal, setShowAddEmailModal] = useState(false);
   const [updatedEmail, setUpdatedEmail] = useState(null);
+  const [deviceType, setDeviceType] = useState(null);
 
   let pos1;
   let pos2;
+
+  useEffect(() => {
+    const getDeviceType = async () => {
+      const type = await Device.getDeviceTypeAsync();
+      setDeviceType(type);
+    };
+    getDeviceType();
+  }, []);
 
   const handleModalOrientationChange = (ev) => {
     setScreenOrientation(ev.nativeEvent.orientation.toUpperCase())
   };
 
+  useEffect(() => {
+    if (!duetteUri) throw new Error('no duetteUri in ReviewDuette!')
+  }, []);
+
+  const showConfirmAlert = () => {
+    Alert.alert(
+      'Are you sure?',
+      "If you continue, your Duette will be saved exactly how you have just previewed it and you will not be able to make further changes.",
+      [
+        { text: "Yes, I'm sure", onPress: () => setSaving(true) },
+        { text: "Cancel", onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  }
+
   const handleSave = () => {
     if (!props.user.email) {
       setShowAddEmailModal(true);
     } else {
-      setSaving(true);
+      showConfirmAlert();
     }
   };
 
@@ -81,11 +107,12 @@ const ReviewDuette = (props) => {
       date2 = Date.now();
       setIsPlaying(true);
     } catch (e) {
-      throw new Error('error in handleShowPreview: ', e)
+      throw new Error('error in handleShowPreview: ', e, 'duetteUri: ', duetteUri, 'baseTrackUri: ', baseTrackUri)
     }
   };
 
   const handleRedo = () => {
+    deleteLocalFile(duetteUri);
     setDuetteUri('');
     setShowPreviewModal(false);
   };
@@ -94,7 +121,7 @@ const ReviewDuette = (props) => {
     setSearchText('');
     setShowPreviewModal(false);
     setShowRecordDuetteModal(false);
-    deleteLocalFile(baseTrackUri);
+    // deleteLocalFile(baseTrackUri); - this is being done in SavingVideo.js
   };
 
   const handlePlaybackStatusUpdate = (updateObj, whichVid) => {
@@ -325,7 +352,7 @@ const ReviewDuette = (props) => {
     <View style={styles.container}>
       <Modal
         onOrientationChange={handleModalOrientationChange}
-        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
+        supportedOrientations={deviceType === 2 ? ['portrait'] : ['portrait', 'landscape', 'landscape-right']}
       >
         {
           saving ? (
@@ -370,7 +397,7 @@ const ReviewDuette = (props) => {
                 />
               ) : (
                   <AddEmailModal
-                    setSaving={setSaving}
+                    showConfirmAlert={showConfirmAlert}
                     setUpdatedEmail={setUpdatedEmail}
                   />
                 )

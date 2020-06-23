@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setError, setErrorRegistered } from './error';
 
 const SET_USER = 'SET_USER';
 const CLEAR_USER = 'CLEAR_USER'
@@ -29,21 +30,23 @@ export const userReducer = (state = {}, action) => {
 };
 
 export const createOrUpdateUser = body => {
-  const { id, name, picture, expires, email } = body;
+  const { id, name, picture, email } = body;
   return dispatch => {
     axios.post('https://duette.herokuapp.com/api/user',
       {
         name,
         facebookId: id,
-        expires,
         email,
         pictureUrl: picture.url,
         pictureWidth: picture.width,
         pictureHeight: picture.height,
         lastLogin: Date.now(),
       })
-      .then(user => dispatch(setUser(user.data)))
+      .then(user => {
+        dispatch(setUser(user.data))
+      })
       .catch(e => {
+        console.log('error in setUser thunk: ', e)
         throw new Error('error in setUser thunk: ', e)
       });
   };
@@ -52,8 +55,14 @@ export const createOrUpdateUser = body => {
 export const updateUser = (userId, body) => {
   return dispatch => {
     axios.put(`https://duette.herokuapp.com/api/user/${userId}`, body)
-      .then(updated => dispatch(setUser(updated.data)))
-      .catch(e => console.log('error in updateUser thunk: ', e))
+      .then(updated => {
+        dispatch(setErrorRegistered());
+        dispatch(setUser(updated.data))
+      })
+      .catch(e => {
+        dispatch(setError(e));
+        console.log('error in updateUser thunk: ', e)
+      })
   }
 }
 

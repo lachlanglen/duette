@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import NewUserModal from './NewUserModal';
+import SubscribeModal from './SubscribeModal';
 import WelcomeModal from './WelcomeModal';
 
 const WelcomeFlow = (props) => {
@@ -9,7 +9,7 @@ const WelcomeFlow = (props) => {
     !props.user.id ? (
       <WelcomeModal />
     ) : (
-        <NewUserModal />
+        <SubscribeModal />
       )
   )
 };

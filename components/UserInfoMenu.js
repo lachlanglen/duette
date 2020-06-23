@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux'
+import { BlurView } from 'expo-blur';
 import { handleLogout } from '../services/utils';
 import { toggleUserInfo } from '../redux/userInfo';
 import buttonStyles from '../styles/button';
@@ -21,10 +22,13 @@ const UserInfoMenu = (props) => {
   }
 
   return (
-    <View style={{
-      position: 'absolute',
-      alignSelf: 'flex-end',
-    }}>
+    // <View style={{ flex: 1, width: '100%', height: '100%', backgroundColor: 'pink' }}>
+    <View
+      style={{
+        position: 'absolute',
+        alignSelf: 'flex-end',
+      }}>
+      {/* <BlurView intensity={100}> */}
       <View style={{
         ...styles.optionContainer,
         backgroundColor: 'white',
@@ -95,7 +99,9 @@ const UserInfoMenu = (props) => {
           }}>Logout
         </Text>
       </TouchableOpacity>
+      {/* </BlurView> */}
     </View>
+    // </View>
   )
 };
 

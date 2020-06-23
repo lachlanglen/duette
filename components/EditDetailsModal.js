@@ -71,7 +71,7 @@ const EditDetailsModal = (props) => {
   return (
     <View style={styles.container}>
       <Modal
-        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape', 'landscape-right']}
       >
         <KeyboardAwareScrollView>
           <Form

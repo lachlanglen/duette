@@ -3,17 +3,18 @@ import { Alert, StyleSheet, Text, View, SafeAreaView, FlatList, Platform, Dimens
 import { Searchbar } from 'react-native-paper';
 import { connect } from 'react-redux';
 import { setVideo } from '../redux/singleVideo'
+import HeadphoneDetection from 'react-native-headphone-detection';
 import RecordDuetteModalIos from '../components/ios/RecordDuetteModal';
 // import RecordDuetteModalAndroid from '../components/android/RecordDuetteModal';
 // import Constants from 'expo-constants';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as FileSystem from 'expo-file-system';
 import * as Device from 'expo-device';
+import * as Permissions from 'expo-permissions';
 import { fetchVideos } from '../redux/videos';
-// import FacebookSignin from '../components/FacebookSignin';
 import UserInfoMenu from '../components/UserInfoMenu';
 import VideoItem from '../components/VideoItem';
-// import LoadingSpinner from '../components/LoadingSpinner';
+import LoadingSpinner from '../components/LoadingSpinner';
 import EditDetailsModal from '../components/EditDetailsModal';
 import { getAWSVideoUrl } from '../constants/urls';
 import { toggleUserInfo } from '../redux/userInfo';
@@ -21,6 +22,8 @@ import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
 
 const DuetteScreen = (props) => {
 
+  const [hasAudioPermission, setHasAudioPermission] = useState(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [showRecordDuetteModal, setShowRecordDuetteModal] = useState(false);
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
   const [previewVid, setPreviewVid] = useState('');
@@ -55,11 +58,53 @@ const DuetteScreen = (props) => {
     getDeviceType();
   });
 
+  const getPermissionsAndRecord = async () => {
+    const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
+    if (perms.permissions.audioRecording.granted) {
+      setHasAudioPermission(true);
+    } else {
+      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+      if (status === 'granted') {
+        setHasAudioPermission(true);
+      } else {
+        Alert.alert(
+          `Oops...`,
+          'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
+          [
+            { text: 'OK', onPress: () => { } },
+          ],
+          { cancelable: false }
+        )
+        throw new Error('Audio permissions not granted');
+      }
+    }
+    if (perms.permissions.camera.granted) {
+      setHasCameraPermission(true);
+      setShowRecordDuetteModal(true);
+    } else {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA);
+      if (status === 'granted') {
+        setHasCameraPermission(true);
+        setShowRecordDuetteModal(true);
+      } else {
+        Alert.alert(
+          `Oops...`,
+          'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
+          [
+            { text: 'OK', onPress: () => handleRefresh() },
+          ],
+          { cancelable: false }
+        )
+        throw new Error('Camera permissions not granted');
+      }
+    }
+  };
+
   const loadVideo = async (id) => {
     // TODO: show error if not enough storage available?
     const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
     const freeDiskStorageMb = freeDiskStorage / 1000000;
-    console.log('freeDiskStorageMb: ', freeDiskStorageMb)
+    // console.log('freeDiskStorageMb: ', freeDiskStorageMb)
     if (freeDiskStorageMb < 100) {
       Alert.alert(
         'Not enough space available',
@@ -82,7 +127,7 @@ const DuetteScreen = (props) => {
           setBaseTrackUri(uri);
           setLoading({ isLoading: false, id: '' });
         }
-        setShowRecordDuetteModal(true);
+        getPermissionsAndRecord();
       } catch (e) {
         Alert.alert(
           'Oops...',
@@ -97,8 +142,25 @@ const DuetteScreen = (props) => {
     }
   }
 
-  const handleUse = (id) => {
-    loadVideo(id);
+  const handleUse = async (id) => {
+    try {
+      const { audioJack, bluetooth } = await HeadphoneDetection.isAudioDeviceConnected();
+      if (!audioJack && !bluetooth) {
+        Alert.alert(
+          'No Headphones Detected',
+          'You need to be using bluetooth or wired headphones in order to record a Duette. Please connect headphones and try again!',
+          [
+            { text: 'OK', onPress: () => { } },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        loadVideo(id);
+      }
+    } catch (e) {
+      loadVideo(id);
+      throw new Error('error detecting headphones: ', e)
+    }
   };
 
   const handlePreview = (id) => {
@@ -179,7 +241,7 @@ const DuetteScreen = (props) => {
                           onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
                         >
                           <Text style={styles.text}>
-                            {"Search for a base track by title, composer, performer or key!"}
+                            {"Search for a base track by title, performer, composer/songwriter or key!"}
                           </Text>
                         </View>
                       ) : (

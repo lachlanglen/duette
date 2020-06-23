@@ -1,16 +1,29 @@
 {
   "images" : [
     {
+      "filename" : "duette-logo-transparent-200x200.png",
       "idiom" : "iphone",
       "scale" : "1x"
     },
     {
+      "filename" : "duette-logo-transparent-400x400.png",
       "idiom" : "iphone",
       "scale" : "2x"
     },
     {
+      "filename" : "duette-logo-transparent-600x600.png",
       "idiom" : "iphone",
       "scale" : "3x"
+    },
+    {
+      "filename" : "duette-logo-transparent-200x200-1.png",
+      "idiom" : "ipad",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "duette-logo-transparent-400x400-1.png",
+      "idiom" : "ipad",
+      "scale" : "2x"
     }
   ],
   "info" : {

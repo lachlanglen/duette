@@ -20,6 +20,7 @@ export const userDuettesReducer = (state = [], action) => {
 }
 
 export const fetchDuettes = (userId) => {
+  // console.log("userId in fetchDuettes: ", userId)
   return dispatch => {
     axios.get(`https://duette.herokuapp.com/api/duette/byUserId/${userId}`)
       .then(duettes => dispatch(setDuettes(duettes.data)))

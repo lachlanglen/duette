@@ -4,12 +4,15 @@ import { connect } from 'react-redux';
 import { View, Modal, StyleSheet, TouchableOpacity, Text, Dimensions, Alert } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { Video } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import { Camera } from 'expo-camera';
 import * as Device from 'expo-device';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
+import HeadphoneDetection from 'react-native-headphone-detection';
 import ReviewDuette from '../ReviewDuette';
 import { deleteLocalFile } from '../../services/utils';
 import buttonStyles from '../../styles/button';
+import axios from 'axios';
 
 let countdownIntervalId;
 let cancel;
@@ -40,6 +43,7 @@ const RecordDuetteModal = (props) => {
   const [hardRefresh, setHardRefresh] = useState(false);
   const [cameraType, setCameraType] = useState('front');
   // const [cancel, setCancel] = useState(false);
+  // const [paused, setPaused] = useState(true);
 
   // const cameraRef = useRef(null);
   const vidRef = useRef(null);
@@ -49,6 +53,7 @@ const RecordDuetteModal = (props) => {
   let time3;
 
   useEffect(() => {
+    cancel = undefined;
     const getDeviceType = async () => {
       const type = await Device.getDeviceTypeAsync();
       setDeviceType(type);
@@ -89,6 +94,7 @@ const RecordDuetteModal = (props) => {
     try {
       time2 = Date.now();
       await vidRef.current.playFromPositionAsync(time2 - time1, { toleranceMillisBefore: 0, toleranceMillisAfter: 0 });
+      // await vidRef.current.seek((time2 - time1) + 1000, 0);
       time3 = Date.now();
       setPlayDelay(time3 - time2);
     } catch (e) {
@@ -98,15 +104,41 @@ const RecordDuetteModal = (props) => {
 
   const toggleRecord = async () => {
     if (recording) {
+      await axios.post('https://duette.herokuapp.com/api/logger', { cancel })
       deactivateKeepAwake();
       setRecording(false);
       cameraRef.stopRecording();
     } else {
-      activateKeepAwake();
-      setRecording(true);
-      record();
-      play();
-    }
+      const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
+      const freeDiskStorageMb = freeDiskStorage / 1000000;
+      if (freeDiskStorageMb < 100) {
+        Alert.alert(
+          'Not enough space available',
+          `You don't have enough free space on your device to record a Duette. Please clear up approx. ${Math.ceil(100 - freeDiskStorageMb)}MB of space and try again!`,
+          [
+            { text: 'OK', onPress: () => { } },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        const { audioJack, bluetooth } = await HeadphoneDetection.isAudioDeviceConnected();
+        if (!audioJack && !bluetooth) {
+          Alert.alert(
+            'No Headphones Detected',
+            'You need to be using bluetooth or wired headphones in order to record a Duette. Please connect headphones and try again!',
+            [
+              { text: 'OK', onPress: () => { } },
+            ],
+            { cancelable: false }
+          );
+        } else {
+          activateKeepAwake();
+          setRecording(true);
+          record();
+          play();
+        };
+      };
+    };
   };
 
   const handleModalOrientationChange = (ev) => {
@@ -143,6 +175,7 @@ const RecordDuetteModal = (props) => {
 
   const handleTryAgain = async () => {
     await vidRef.current.stopAsync();
+    // setPaused(true);
     cancel = true;
     cameraRef.stopRecording();
     setRecording(false);
@@ -175,9 +208,12 @@ const RecordDuetteModal = (props) => {
   }
 
   const handlePlaybackStatusUpdate = (updateObj) => {
+    // console.log('updateObj.didJustFinish? ', updateObj.didJustFinish)
     if (updateObj.isLoaded !== vidLoaded) setVidLoaded(updateObj.isLoaded);
     if (!vidDoneBuffering && !updateObj.isBuffering) setVidDoneBuffering(true);
-    if (updateObj.didJustFinish) toggleRecord();
+    if (updateObj.didJustFinish && updateObj.positionMillis > 10000) {
+      toggleRecord();
+    }
   };
 
   const startCountdown = () => {
@@ -225,7 +261,8 @@ const RecordDuetteModal = (props) => {
               {
                 deviceType === 2 && screenOrientation === 'LANDSCAPE' ? (
                   <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: 'white', fontSize: 20 }}>Landscape recording not supported on iPad</Text>
+                    <Text style={{ color: 'white', fontSize: 20 }}>Landscape recording not yet supported on iPad
+                    </Text>
                   </View>
                 ) : (
                     <View style={{
@@ -281,24 +318,32 @@ const RecordDuetteModal = (props) => {
                                   {recording ? 'REC' : 'Cancel'}
                                 </Text>
                                 {
-                                  recording && deviceType !== 2 &&
+                                  recording &&
                                   <View
-                                    style={{
-                                      width: screenOrientation === 'LANDSCAPE' ? 14 : 10,
-                                      height: screenOrientation === 'LANDSCAPE' ? 14 : 10,
+                                    style={deviceType === 2 ? {
+                                      width: screenOrientation === 'LANDSCAPE' ? 30 : 20,
+                                      height: screenOrientation === 'LANDSCAPE' ? 30 : 20,
                                       backgroundColor: 'red',
                                       borderRadius: 50,
                                       marginLeft: 7,
                                       marginTop: screenOrientation === 'LANDSCAPE' ? 26 : 16,
-                                    }} />
+                                    } : {
+                                        width: screenOrientation === 'LANDSCAPE' ? 14 : 13,
+                                        height: screenOrientation === 'LANDSCAPE' ? 14 : 13,
+                                        backgroundColor: 'red',
+                                        borderRadius: 50,
+                                        marginLeft: 7,
+                                        marginTop: screenOrientation === 'LANDSCAPE' ? 26 : 14,
+                                      }} />
                                 }
                               </TouchableOpacity>
                             </View>
                             {
-                              vidLoaded && vidDoneBuffering &&
+                              vidLoaded && vidDoneBuffering && !countdownActive &&
                               <View
                                 style={styles.recordButtonContainer}>
                                 <TouchableOpacity
+                                  disabled={countdownActive}
                                 >
                                   <Text style={{
                                     ...styles.recordText,
@@ -306,14 +351,21 @@ const RecordDuetteModal = (props) => {
                                   }}>{recording ? '' : 'record'}</Text>
                                   <TouchableOpacity
                                     onPress={!recording ? startCountdown : toggleRecord}
-                                    style={{
+                                    style={deviceType === 2 ? {
                                       ...styles.recordButton,
-                                      borderWidth: deviceType === 2 ? 6 : screenWidth / 100,
-                                      width: deviceType === 2 ? 60 : screenWidth / 10,
-                                      height: deviceType === 2 ? 60 : screenWidth / 10,
+                                      borderWidth: 6,
+                                      width: 60,
+                                      height: 60,
                                       backgroundColor: recording ? 'black' : 'red',
                                       marginBottom: screenOrientation === 'LANDSCAPE' ? 10 : 6,
-                                    }} />
+                                    } : {
+                                        ...styles.recordButton,
+                                        borderWidth: screenOrientation === 'LANDSCAPE' ? 6 : screenWidth / 100,
+                                        width: screenOrientation === 'LANDSCAPE' ? 60 : screenWidth / 10,
+                                        height: screenOrientation === 'LANDSCAPE' ? 60 : screenWidth / 10,
+                                        backgroundColor: recording ? 'black' : 'red',
+                                        marginBottom: screenOrientation === 'LANDSCAPE' ? 10 : 6,
+                                      }} />
                                 </TouchableOpacity>
                                 {
                                   screenOrientation === 'PORTRAIT' && !recording &&
@@ -327,7 +379,7 @@ const RecordDuetteModal = (props) => {
                                       name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
                                       type="material"
                                       color="black"
-                                      size={26}
+                                      size={deviceType === 2 ? 36 : 26}
                                     />
                                   </View>
                                 }
@@ -354,7 +406,8 @@ const RecordDuetteModal = (props) => {
                           justifyContent: 'center',
                         }}>
                           <Text style={{
-                            color: '#0047B9',
+                            // color: '#0047B9',
+                            color: 'white',
                             fontSize: screenOrientation === 'LANDSCAPE' || deviceType === 2 ? 100 : 70
                           }}
                           >

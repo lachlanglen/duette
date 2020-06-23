@@ -1,12 +1,16 @@
 import * as SecureStore from 'expo-secure-store';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import store from '../redux/store';
 import * as FileSystem from 'expo-file-system';
-import { clearCurrentUser, createOrUpdateUser, updateUser } from '../redux/user';
+import * as InAppPurchases from 'expo-in-app-purchases';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
+import { clearCurrentUser, createOrUpdateUser, updateUser, setUser } from '../redux/user';
 import { toggleUserInfo } from '../redux/userInfo';
 import AuthService from './Auth';
 import axios from 'axios';
 import { fetchDuettes } from '../redux/duettes';
+import { updateTransactionProcessing } from '../redux/transactionProcessing';
+import { updateRestoringProcessing } from '../redux/restoringProcessing';
 
 const Auth = new AuthService;
 
@@ -21,19 +25,22 @@ export const handleLogin = async () => {
       const moreInfo = await fetch(`https://graph.facebook.com/${id}?fields=email,picture&access_token=${token}`);
       const { email, picture } = await moreInfo.json();
       // create or update user & store this user on state
-      store.dispatch(createOrUpdateUser({ id, name, picture, email, expires }));
+      store.dispatch(createOrUpdateUser({ id, name, picture, email }));
       // save token and expiry to secure store
       try {
         await SecureStore.setItemAsync('accessToken', token);
         await SecureStore.setItemAsync('expires', expires.toString());
         await SecureStore.setItemAsync('facebookId', id);
         const user = (await axios.get(`https://duette.herokuapp.com/api/user/facebookId/${id}`)).data;
-        store.dispatch(fetchDuettes(user.id));
+        // store.dispatch(fetchDuettes(user.id));
+        // TODO: may have to fix this bandaid solution below
+        if (!store.getState().user.id) store.dispatch(setUser(user));
       } catch (e) {
-        console.log('error setting access token, expires or facebookId keys on secure store: ', e);
+        throw new Error('error setting access token, expires or facebookId keys on secure store: ', e);
       }
     } catch (e) {
-      console.log('error fetching user info: ', e);
+      // console.log('error fetching user info: ', e);
+      throw new Error('error fetching user info: ', e);
     }
   } else {
     console.log('login cancelled')
@@ -48,19 +55,111 @@ export const handleLogout = async (displayUserInfo) => {
     store.dispatch(clearCurrentUser());
     store.dispatch(toggleUserInfo(!displayUserInfo));
   } catch (e) {
-    console.log('error deleting items from secure store: ', e)
+    throw new Error('error deleting items from secure store: ', e);
   }
 };
 
-export const handleSubscribe = (userId) => {
-  Alert.alert(
-    `Purchase`,
-    "Here is where you will complete purchase flow.",
-    [
-      { text: 'OK', onPress: () => store.dispatch(updateUser(userId, { isSubscribed: true })) }, // add userId and
-    ],
-    { cancelable: false }
-  )
+export const handleSubscribe = async () => {
+  const responseCode = await InAppPurchases.getBillingResponseCodeAsync();
+  if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
+    // Either we're not connected or the last response returned an error (Android)
+    await InAppPurchases.connectAsync();
+    console.log('connected in handleSubscribe')
+  }
+  try {
+    const items = Platform.select({
+      ios: [
+        'app.duette.duette.one_month'
+      ],
+    });
+    console.log('items: ', items)
+    await axios.post('https://duette.herokuapp.com/api/logger', { items });
+    try {
+      const products = await InAppPurchases.getProductsAsync(items);
+      console.log('products: ', products);
+      await axios.post('https://duette.herokuapp.com/api/logger', { products });
+      try {
+        await InAppPurchases.purchaseItemAsync(products.results[0].productId);
+      } catch (e) {
+        console.log('error puchasing item: ', e)
+        await axios.post('https://duette.herokuapp.com/api/logger', { errorPurchasing: e });
+      }
+    } catch (e) {
+      console.log('error getting products: ', e);
+      await axios.post('https://duette.herokuapp.com/api/logger', { errorGetting: e });
+    }
+  } catch (e) {
+    console.log('error connecting: ', e)
+    await axios.post('https://duette.herokuapp.com/api/logger', { errorConnecting: e });
+  }
+};
+
+const finishRestore = () => {
+  store.dispatch(updateRestoringProcessing(false));
+  deactivateKeepAwake();
+}
+
+export const handleRestore = async () => {
+  store.dispatch(updateRestoringProcessing(true));
+  activateKeepAwake();
+  const responseCode = await InAppPurchases.getBillingResponseCodeAsync();
+  if (responseCode !== InAppPurchases.IAPResponseCode.OK) {
+    console.log('responseCode in handleRestore: ', responseCode)
+    // Either we're not connected or the last response returned an error (Android)
+    await InAppPurchases.connectAsync();
+    console.log('connected in handleRestore')
+  }
+  try {
+    const { responseCode, results } = await InAppPurchases.getPurchaseHistoryAsync(true);
+    console.log('results.length: ', results.length)
+    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+      // console.log('results: ', results)
+      const res = (await axios.post('https://duette.herokuapp.com/api/appStore', { data: results[results.length - 1].transactionReceipt })).data;
+      // console.log('res: ', res[res.length - 1])
+      const sorted = res.sort((a, b) => a.expires_date_ms - b.expires_date_ms);
+      // console.log('sorted: ', sorted)
+      // sorted.forEach(r => console.log('expires: ', r.expires_date_ms))
+      const latest = sorted[sorted.length - 1];
+      console.log('latest: ', latest)
+
+      if (parseInt(Date.now().toString().slice(0, 10)) < parseInt(latest.expires_date_ms.toString().slice(0, 10))) {
+        // user's subscription is current; update user record
+        const userId = store.getState().user.id;
+        // console.log('userId in App.js useEffect: ', userId);
+        const updatedUser = (await axios.put(`https://duette.herokuapp.com/api/user/${userId}`, { isSubscribed: true, hasLapsed: false, expires: latest.expires_date_ms.toString().slice(0, 10) })).data;
+        console.log('user updated with isSubscribed & expiration: ', updatedUser);
+        store.dispatch(setUser(updatedUser));
+        Alert.alert(
+          'Subscription Restored',
+          "We were able to restore your most recent subscription. Happy Duetting!",
+          [
+            { text: 'OK', onPress: () => finishRestore() },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        // user's most recent subscription is expired; no action to take
+        Alert.alert(
+          'Subscription Expired',
+          "It looks like your most recent subscription has expired. If you believe this to be incorrect, please email us at support@duette.app.",
+          [
+            { text: 'OK', onPress: () => finishRestore() },
+          ],
+          { cancelable: false }
+        );
+      }
+    }
+  } catch (e) {
+    console.log('error getting purchase history: ', e);
+    Alert.alert(
+      'Oops',
+      "Unfortunately we could not restore your subscription at this time. Please try again later or email us at support@duette.app.",
+      [
+        { text: 'OK', onPress: () => finishRestore() },
+      ],
+      { cancelable: false }
+    );
+  }
 }
 
 export const deleteLocalFile = async fileName => {

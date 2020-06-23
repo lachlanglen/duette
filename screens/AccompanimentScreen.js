@@ -11,7 +11,6 @@ import * as Permissions from 'expo-permissions';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import DetailsModal from '../components/DetailsModal';
 import { fetchVideos } from '../redux/videos';
-// import FacebookSignin from '../components/FacebookSignin';
 import UserInfoMenu from '../components/UserInfoMenu';
 // import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
 import RecordAccompanimentIos from '../components/ios/RecordAccompaniment';
@@ -23,6 +22,7 @@ import { toggleUserInfo } from '../redux/userInfo';
 import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
 import { deleteLocalFile } from '../services/utils';
 import { toggleRequestReview } from '../redux/requestReview';
+import { updateTransactionProcessing } from '../redux/transactionProcessing';
 
 let timerIntervalId;
 let countdownIntervalId;
@@ -224,10 +224,12 @@ const AccompanimentScreen = (props) => {
     }
     if (perms.permissions.camera.granted) {
       setHasCameraPermission(true);
+      setRecord(true);
     } else {
       const { status } = await Permissions.askAsync(Permissions.CAMERA);
       if (status === 'granted') {
         setHasCameraPermission(true);
+        setRecord(true);
       } else {
         Alert.alert(
           `Oops...`,
@@ -240,7 +242,6 @@ const AccompanimentScreen = (props) => {
         throw new Error('Camera permissions not granted');
       }
     }
-    setRecord(true);
   };
 
   return (
@@ -289,47 +290,59 @@ const AccompanimentScreen = (props) => {
                 />
                 // )
               ) : (
-                  // landing page ('Record!' button not clicked)
-                  <ScrollView
-                    style={styles.landingPage}>
-                    <View
-                      onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
-                      style={styles.logoAndButtonsContainer}>
-                      <Image
-                        source={require('../assets/images/duette-logo-HD.png')}
-                        style={styles.logo} />
-                      <View>
-                        <TouchableOpacity
+                  props.transactionProcessing ? (
+                    <LoadingSpinner />
+                  ) : (
+                      // landing page ('Record!' button not clicked)
+                      <View
+                        style={styles.landingPage}>
+                        <View
+                          onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
                           style={{
-                            ...buttonStyles.regularButton,
-                            width: deviceType === 2 ? screenWidth * 0.5 : '75%',
-                            height: 60,
-                          }}
-                          onPress={handleRecordBaseTrack}
-                        >
-                          <Text style={buttonStyles.regularButtonText}>Record a new base track</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={{
-                            ...buttonStyles.regularButton,
-                            width: deviceType === 2 ? screenWidth * 0.5 : '60%',
-                            height: 60,
-                          }}
-                          onPress={() => props.navigation.navigate('Duette')}
-                        >
-                          <Text style={buttonStyles.regularButtonText}>Record a Duette</Text>
-                        </TouchableOpacity>
-                        {/* <Button
-                          onPress={registerForPushNotificationsAsync}
-                          title="Get a notification"
-                        /> */}
+                            ...styles.logoAndButtonsContainer,
+                            height: screenHeight * 0.9,
+                            marginTop: screenHeight < 800 ? 40 : 0,
+                            justifyContent: screenHeight < 800 ? 'flex-start' : 'center',
+                            // justifyContent: deviceType === 2 ? 'center' : 'flex-start',
+                          }}>
+                          <Image
+                            source={require('../assets/images/duette-logo-HD.png')}
+                            style={styles.logo} />
+                          <View>
+                            <TouchableOpacity
+                              style={{
+                                ...buttonStyles.regularButton,
+                                width: deviceType === 2 ? screenWidth * 0.5 : '75%',
+                                height: 60,
+                              }}
+                              onPress={handleRecordBaseTrack}
+                            >
+                              <Text style={{
+                                ...buttonStyles.regularButtonText,
+                                fontSize: deviceType === 2 ? 30 : 22,
+                              }}>Record a base track</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={{
+                                ...buttonStyles.regularButton,
+                                width: deviceType === 2 ? screenWidth * 0.5 : '60%',
+                                height: 60,
+                              }}
+                              onPress={() => props.navigation.navigate('Duette')}
+                            >
+                              <Text style={{
+                                ...buttonStyles.regularButtonText,
+                                fontSize: deviceType === 2 ? 30 : 22,
+                              }}>Record a Duette</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        {
+                          props.displayUserInfo &&
+                          <UserInfoMenu />
+                        }
                       </View>
-                    </View>
-                    {
-                      props.displayUserInfo &&
-                      <UserInfoMenu />
-                    }
-                  </ScrollView>
+                    )
                 )
             }
           </View >
@@ -375,21 +388,20 @@ const styles = StyleSheet.create({
   },
   logoAndButtonsContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
   },
   logo: {
     width: 250,
-    height: 250,
-    margin: 30,
+    height: 200,
+    marginBottom: 30,
   }
 })
 
-const mapState = ({ user, displayUserInfo, dataLoaded }) => {
+const mapState = ({ user, displayUserInfo, dataLoaded, transactionProcessing }) => {
   return {
     user,
     displayUserInfo,
     dataLoaded,
+    transactionProcessing,
   }
 };
 
@@ -398,6 +410,7 @@ const mapDispatch = dispatch => {
     fetchVideos: () => dispatch(fetchVideos()),
     toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
     toggleRequestReview: bool => dispatch(toggleRequestReview(bool)),
+    updateTransactionProcessing: bool => dispatch(updateTransactionProcessing(bool)),
   }
 };
 

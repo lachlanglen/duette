@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { Linking, View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import * as Device from 'expo-device';
 import buttonStyles from '../../styles/button';
 import { handleLogin, handleSubscribe } from '../../services/utils';
 
 const NewUserModal = (props) => {
+
+  const [deviceType, setDeviceType] = useState(null);
+
+  useEffect(() => {
+    const getDeviceType = async () => {
+      const type = await Device.getDeviceTypeAsync();
+      setDeviceType(type);
+    };
+    getDeviceType();
+  })
 
   return (
     <Modal>
@@ -14,13 +25,16 @@ const NewUserModal = (props) => {
           source={require('../../assets/images/duette-logo-HD.png')}
           style={styles.logo} />
         <Text style={styles.titleText}>Welcome to Duette!</Text>
-        <Text style={styles.subTitleText}>Connect with Facebook and make amazing split-screen music videos in seconds!</Text>
+        <Text style={{
+          ...styles.subTitleText,
+          paddingHorizontal: deviceType === 2 ? 150 : 0,
+        }}>Connect with Facebook and make amazing split-screen music videos in seconds!</Text>
         <TouchableOpacity
           onPress={handleLogin}
           style={{
             ...buttonStyles.regularButton,
             marginTop: 30,
-            width: '100%',
+            width: deviceType === 2 ? '50%' : '100%',
             height: 60,
             marginBottom: 0,
           }}>
@@ -35,8 +49,13 @@ const NewUserModal = (props) => {
             marginTop: 10,
           }}>
         </TouchableOpacity>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 10
+          }}>By clicking 'Connect with Facebook', you confirm that you have read and agreed to Duette's <Text onPress={() => Linking.openURL('http://duette.app/terms-of-use')} style={{ color: '#0047B9' }}>Terms of Use</Text> and <Text onPress={() => Linking.openURL('http://duette.app/privacy-policy')} style={{ color: '#0047B9' }}>Privacy Policy.</Text></Text>
       </ScrollView>
-    </Modal>
+    </Modal >
   )
 };
 

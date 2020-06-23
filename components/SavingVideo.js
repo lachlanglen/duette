@@ -213,7 +213,7 @@ const SavingVideo = (props) => {
       style={styles.container}>
       <Text style={styles.titleTextBlue}>Uploading Video...</Text>
       <Text style={styles.importantTextRed}>Important:</Text>
-      <Text style={styles.importantTextRed}>Please do not leave this screen!</Text>
+      <Text style={styles.importantTextRed}>Please do not leave this screen, or your video will not be saved!</Text>
       <ActivityIndicator size="large" color="#0047B9" />
     </View>
   );

@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet, Alert } from 'react-native';
 import { Video } from 'expo-av';
 import buttonStyles from '../../styles/button';
 
@@ -20,6 +20,18 @@ const PreviewAccompaniment = (props) => {
   const handleModalOrientationChange = (ev) => {
     setScreenOrientation(ev.nativeEvent.orientation.toUpperCase())
   };
+
+  const handleRedo = () => {
+    Alert.alert(
+      'Are you sure?',
+      "If you continue, the base track you just recorded will be permanently deleted.",
+      [
+        { text: "Yes, I'm sure", onPress: () => handleRefresh() },
+        { text: "Cancel", onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  }
 
   return (
     <Modal
@@ -84,7 +96,7 @@ const PreviewAccompaniment = (props) => {
               marginHorizontal: screenOrientation === 'PORTRAIT' ? 15 : 0,
               marginTop: deviceType === 2 ? 30 : 0,
             }}
-            onPress={handleRefresh}>
+            onPress={handleRedo}>
             <Text style={buttonStyles.regularButtonText}
             >Redo
             </Text>

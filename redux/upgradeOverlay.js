@@ -8,7 +8,7 @@ export const toggleUpgradeOverlay = bool => {
 
 };
 
-export const displayUpgradeOverlay = (state = false, action) => {
+export const displayUpgradeOverlayReducer = (state = false, action) => {
   switch (action.type) {
     case TOGGLE_OVERLAY:
       return action.bool;
