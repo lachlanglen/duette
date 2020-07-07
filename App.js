@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as Notifications from "expo-notifications";
 import * as SecureStore from 'expo-secure-store';
 import * as InAppPurchases from 'expo-in-app-purchases';
-import { Platform, StatusBar, StyleSheet, View, SafeAreaView } from 'react-native';
+import { Text, TextInput, Platform, StatusBar, StyleSheet, View, SafeAreaView } from 'react-native';
 import store from './redux/store';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import { Provider } from 'react-redux';
@@ -28,6 +28,11 @@ Sentry.init({
   dsn: 'https://4f1d90283940486d93204bc6690934e2@o378963.ingest.sentry.io/5203127',
 });
 
+Text.defaultProps = Text.defaultProps || {};
+Text.defaultProps.allowFontScaling = false;
+
+TextInput.defaultProps = TextInput.defaultProps || {};
+TextInput.defaultProps.allowFontScaling = false;
 
 const Stack = createStackNavigator();
 
@@ -40,73 +45,73 @@ export default function App(props) {
   const isLoadingComplete = useCachedResources();
   const containerRef = React.useRef();
 
-  React.useEffect(() => {
-    const setListener = async () => {
-      InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
-        console.log('in purchase listener')
-        const RC = await InAppPurchases.getBillingResponseCodeAsync();
-        if (RC !== InAppPurchases.IAPResponseCode.OK) {
-          // Either we're not connected or the last response returned an error (Android)
-          await InAppPurchases.connectAsync();
-          console.log('connected in purchase listener')
-        }
-        if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
-          console.log('User canceled the transaction');
-          store.dispatch(updateTransactionProcessing(false));
-          deactivateKeepAwake();
-          // TODO: handle other response code cases
-        } else if (responseCode === InAppPurchases.IAPResponseCode.ERROR) {
-          console.log('Error processing transaction');
-          store.dispatch(updateTransactionProcessing(false));
-          deactivateKeepAwake();
-        } else if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-          // Purchase was successful
-          results.forEach(async purchase => {
-            if (!purchase.acknowledged) {
-              console.log(`Successfully purchased ${purchase.productId}`);
-              // Process transaction here and unlock content...
-              // console.log('purchase: ', purchase)
-              const results = (await axios.post('https://duette.herokuapp.com/api/appStore', { data: purchase.transactionReceipt })).data;
-              // console.log('result: ', result)
-              const latest = results[results.length - 1];
-              console.log('latest transaction: ', latest)
-              console.log('is trial period? ', latest.is_trial_period);
-              console.log('expires: ', latest.expires_date_ms);
-              if (parseInt(Date.now().toString().slice(0, 10)) < parseInt(latest.expires_date_ms.toString().slice(0, 10))) {
+  // React.useEffect(() => {
+  //   const setListener = async () => {
+  //     InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
+  //       console.log('in purchase listener')
+  //       const RC = await InAppPurchases.getBillingResponseCodeAsync();
+  //       if (RC !== InAppPurchases.IAPResponseCode.OK) {
+  //         // Either we're not connected or the last response returned an error (Android)
+  //         await InAppPurchases.connectAsync();
+  //         console.log('connected in purchase listener')
+  //       }
+  //       if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+  //         console.log('User canceled the transaction');
+  //         store.dispatch(updateTransactionProcessing(false));
+  //         deactivateKeepAwake();
+  //         // TODO: handle other response code cases
+  //       } else if (responseCode === InAppPurchases.IAPResponseCode.ERROR) {
+  //         console.log('Error processing transaction');
+  //         store.dispatch(updateTransactionProcessing(false));
+  //         deactivateKeepAwake();
+  //       } else if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+  //         // Purchase was successful
+  //         results.forEach(async purchase => {
+  //           if (!purchase.acknowledged) {
+  //             console.log(`Successfully purchased ${purchase.productId}`);
+  //             // Process transaction here and unlock content...
+  //             // console.log('purchase: ', purchase)
+  //             const results = (await axios.post('https://duette.herokuapp.com/api/appStore', { data: purchase.transactionReceipt })).data;
+  //             // console.log('result: ', result)
+  //             const latest = results[results.length - 1];
+  //             console.log('latest transaction: ', latest)
+  //             console.log('is trial period? ', latest.is_trial_period);
+  //             console.log('expires: ', latest.expires_date_ms);
+  //             if (parseInt(Date.now().toString().slice(0, 10)) < parseInt(latest.expires_date_ms.toString().slice(0, 10))) {
 
-                // open up subscriber content (update user record)
-                const userId = store.getState().user.id;
-                // console.log('userId in App.js useEffect: ', userId);
-                const updatedUser = (await axios.put(`https://duette.herokuapp.com/api/user/${userId}`, { isSubscribed: true, hasLapsed: false, expires: latest.expires_date_ms.toString().slice(0, 10) })).data;
-                console.log('user updated with isSubscribed & expiration: ', updatedUser);
-                store.dispatch(setUser(updatedUser));
-                // Then when you're done
-                try {
-                  await InAppPurchases.finishTransactionAsync(purchase, true);
-                  console.log('finished transaction!')
-                  store.dispatch(updateTransactionProcessing(false));
-                  deactivateKeepAwake();
-                } catch (e) {
-                  console.log('error finishing transaction: ', e)
-                  store.dispatch(updateTransactionProcessing(false));
-                  deactivateKeepAwake();
-                }
-              } else {
-                await InAppPurchases.finishTransactionAsync(purchase, true);
-                console.log('finished transaction!')
-                store.dispatch(updateTransactionProcessing(false));
-                deactivateKeepAwake();
-              }
-            }
-          });
-        }
-      });
-    };
-    setListener();
-    return (async () => {
-      await InAppPurchases.disconnectAsync();
-    })
-  }, []);
+  //               // open up subscriber content (update user record)
+  //               const userId = store.getState().user.id;
+  //               // console.log('userId in App.js useEffect: ', userId);
+  //               const updatedUser = (await axios.put(`https://duette.herokuapp.com/api/user/${userId}`, { isSubscribed: true, hasLapsed: false, expires: latest.expires_date_ms.toString().slice(0, 10) })).data;
+  //               console.log('user updated with isSubscribed & expiration: ', updatedUser);
+  //               store.dispatch(setUser(updatedUser));
+  //               // Then when you're done
+  //               try {
+  //                 await InAppPurchases.finishTransactionAsync(purchase, true);
+  //                 console.log('finished transaction!')
+  //                 store.dispatch(updateTransactionProcessing(false));
+  //                 deactivateKeepAwake();
+  //               } catch (e) {
+  //                 console.log('error finishing transaction: ', e)
+  //                 store.dispatch(updateTransactionProcessing(false));
+  //                 deactivateKeepAwake();
+  //               }
+  //             } else {
+  //               await InAppPurchases.finishTransactionAsync(purchase, true);
+  //               console.log('finished transaction!')
+  //               store.dispatch(updateTransactionProcessing(false));
+  //               deactivateKeepAwake();
+  //             }
+  //           }
+  //         });
+  //       }
+  //     });
+  //   };
+  //   setListener();
+  //   return (async () => {
+  //     await InAppPurchases.disconnectAsync();
+  //   })
+  // }, []);
 
   if (!isLoadingComplete) {
     return null;

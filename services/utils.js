@@ -73,11 +73,9 @@ export const handleSubscribe = async () => {
       ],
     });
     console.log('items: ', items)
-    await axios.post('https://duette.herokuapp.com/api/logger', { items });
     try {
       const products = await InAppPurchases.getProductsAsync(items);
       console.log('products: ', products);
-      await axios.post('https://duette.herokuapp.com/api/logger', { products });
       try {
         await InAppPurchases.purchaseItemAsync(products.results[0].productId);
       } catch (e) {
