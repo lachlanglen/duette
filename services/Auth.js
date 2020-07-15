@@ -4,11 +4,11 @@ import appleAuth, {
   AppleAuthRequestOperation,
   AppleAuthRequestScope,
 } from '@invertase/react-native-apple-authentication';
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-community/google-signin';
+// import {
+//   GoogleSignin,
+//   GoogleSigninButton,
+//   statusCodes,
+// } from '@react-native-community/google-signin';
 
 import { config } from '../config';
 
@@ -61,21 +61,21 @@ export default class AuthService {
   }
 
   async loginWithGoogle() {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const info = await GoogleSignin.signIn();
-      console.log('Google signin info: ', info)
-    } catch (error) {
-      console.log('Google signin error: ', error)
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
-      } else {
-        // some other error happened
-      }
-    }
+    //   try {
+    //     await GoogleSignin.hasPlayServices();
+    //     const info = await GoogleSignin.signIn();
+    //     console.log('Google signin info: ', info)
+    //   } catch (error) {
+    //     console.log('Google signin error: ', error)
+    //     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+    //       // user cancelled the login flow
+    //     } else if (error.code === statusCodes.IN_PROGRESS) {
+    //       // operation (e.g. sign in) is in progress already
+    //     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+    //       // play services not available or outdated
+    //     } else {
+    //       // some other error happened
+    //     }
+    //   }
   }
 }

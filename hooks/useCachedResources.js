@@ -26,7 +26,6 @@ export default function useCachedResources() {
     if (!Constants.manifest) {
       Constants.manifest = manifest.expo;
     }
-    console.log('constants.manifest: ', Constants.manifest)
     // const setPurchaseListener = async () => {
     //   InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
     //     console.log('in purchase listener')
@@ -147,12 +146,12 @@ export default function useCachedResources() {
           playsInSilentModeIOS: true,
         });
         if (Platform.OS === 'android') {
-          GoogleSignin.configure({
-            webClientId: WebClientID, // client ID of type WEB for your server(needed to verify user ID and offline access)
-            offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-            forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
-            accountName: '', // [Android] specifies an account name on the device that should be used
-          });
+          // GoogleSignin.configure({
+          //   webClientId: Constants.manifest.extra.GOOGLE_WEB_CLIENT_ID, // client ID of type WEB for your server(needed to verify user ID and offline access)
+          //   offlineAccess: false, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+          //   forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
+          //   accountName: '', // [Android] specifies an account name on the device that should be used
+          // });
         }
         // setPurchaseListener();
         // await InAppPurchases.connectAsync();
