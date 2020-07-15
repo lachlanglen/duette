@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Platform, View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import * as Device from 'expo-device';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import buttonStyles from '../../styles/button';
@@ -58,6 +58,7 @@ const SubscribeModal = (props) => {
                   <Text style={{
                     ...buttonStyles.regularButtonText,
                     fontSize: 28,
+                    fontWeight: Platform.OS === 'android' ? 'normal' : 'bold',
                   }}>{props.transactionProcessing ? 'Please wait...' : 'Resubscribe'}</Text>
                   {
                     props.transactionProcessing &&
@@ -84,7 +85,7 @@ const SubscribeModal = (props) => {
                   disabled={props.restoringProcessing || props.transactionProcessing}
                   style={{
                     ...buttonStyles.regularButton,
-                    marginTop: 30,
+                    marginTop: Platform.OS === 'ios' ? 30 : 20,
                     width: '100%',
                     height: 60,
                     marginBottom: 0,
@@ -93,7 +94,8 @@ const SubscribeModal = (props) => {
                   <View style={{ flexDirection: 'row' }}>
                     <Text style={{
                       ...buttonStyles.regularButtonText,
-                      fontSize: 28,
+                      fontSize: Platform.OS === 'ios' ? 28 : 26,
+                      fontWeight: Platform.OS === 'android' ? 'normal' : 'bold',
                     }}>{props.transactionProcessing ? 'Please wait...' : 'Start free trial'}</Text>
                     {
                       props.transactionProcessing &&
@@ -107,9 +109,9 @@ const SubscribeModal = (props) => {
         <TouchableOpacity
           disabled={props.restoringProcessing || props.transactionProcessing}
           onPress={handleRestore}>
-          <Text style={{ color: '#0047B9', marginTop: 14, fontSize: deviceType === 2 ? 16 : 14 }}>{props.restoringProcessing ? 'Restoring, please wait...' : 'Already subscribed? Restore Subscription'}</Text>
+          <Text style={{ color: '#0047B9', marginTop: Platform.OS === 'ios' ? 14 : 10, fontSize: deviceType === 2 ? 16 : 14 }}>{props.restoringProcessing ? 'Restoring, please wait...' : 'Already subscribed? Restore Subscription'}</Text>
         </TouchableOpacity>
-        <Text style={{ marginTop: 14, textAlign: 'center', fontSize: deviceType === 2 ? 15 : 14 }}>Have questions or concerns? Email us at support@duette.app - we'd love to hear from you!</Text>
+        <Text style={{ marginTop: Platform.OS === 'ios' ? 14 : 10, textAlign: 'center', fontSize: deviceType === 2 ? 15 : 14 }}>Have questions or concerns? Email us at support@duette.app - we'd love to hear from you!</Text>
       </ScrollView>
     </Modal>
   )
@@ -121,21 +123,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 60,
     backgroundColor: '#ffd12b'
   },
   titleText: {
     color: '#0047B9',
-    fontSize: 30,
+    fontSize: Platform.OS === 'ios' ? 30 : 24,
     fontWeight: 'bold',
-    marginTop: 30,
+    marginTop: Platform.OS === 'ios' ? 30 : 20,
     textAlign: 'center',
   },
   subTitleText: {
     color: 'black',
-    fontSize: 22,
+    fontSize: Platform.OS === 'ios' ? 22 : 19,
     // fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 30,
+    marginTop: Platform.OS === 'ios' ? 30 : 20,
   },
   logo: {
     width: 250,

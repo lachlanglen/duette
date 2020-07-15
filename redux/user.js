@@ -30,17 +30,15 @@ export const userReducer = (state = {}, action) => {
 };
 
 export const createOrUpdateUser = body => {
-  const { id, name, picture, email } = body;
+  const { oAuthId, name, email, isApple } = body;
   return dispatch => {
     axios.post('https://duette.herokuapp.com/api/user',
       {
         name,
-        facebookId: id,
+        oAuthId,
         email,
-        pictureUrl: picture.url,
-        pictureWidth: picture.width,
-        pictureHeight: picture.height,
         lastLogin: Date.now(),
+        isApple,
       })
       .then(user => {
         dispatch(setUser(user.data))

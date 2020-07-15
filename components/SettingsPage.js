@@ -170,11 +170,11 @@ const SettingsPage = (props) => {
             <Text style={{
               ...styles.tierText,
               marginBottom: 0,
-            }}>Unlimited ($1.99/month)</Text>
-            <TouchableOpacity
+            }}>FREE</Text>
+            {/* <TouchableOpacity
               onPress={handleManageSubscription}>
               <Text style={{ color: '#0047B9', marginTop: 10, fontSize: 16 }}>Manage Subscription</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             {/* <Text style={styles.bulletText}>{'\u2022'} 3.5 min video length</Text>
             <Text style={styles.bulletText}>{'\u2022'} Save videos with Duette logo</Text> */}
             {/* <View style={{

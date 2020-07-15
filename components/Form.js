@@ -1,6 +1,6 @@
 import React, { createRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Platform, Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Input } from 'react-native-elements';
 import { clearVideo } from '../redux/singleVideo';
 import buttonStyles from '../styles/button';
@@ -194,7 +194,7 @@ const Form = (props) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 80,
+    marginTop: Platform.OS === 'ios' ? 80 : 40,
     marginHorizontal: 20,
   },
   titleText: {

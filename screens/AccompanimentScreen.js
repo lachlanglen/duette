@@ -12,14 +12,14 @@ import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import DetailsModal from '../components/DetailsModal';
 import { fetchVideos } from '../redux/videos';
 import UserInfoMenu from '../components/UserInfoMenu';
-// import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
+import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
 import RecordAccompanimentIos from '../components/ios/RecordAccompaniment';
-// import PreviewAccompanimentAndroid from '../components/android/PreviewAccompaniment';
+import PreviewAccompanimentAndroid from '../components/android/PreviewAccompaniment';
 import PreviewAccompanimentIos from '../components/ios/PreviewAccompaniment';
 import buttonStyles from '../styles/button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { toggleUserInfo } from '../redux/userInfo';
-import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
+import WelcomeModal from '../components/WelcomeFlow/WelcomeModal';
 import { deleteLocalFile } from '../services/utils';
 import { toggleRequestReview } from '../redux/requestReview';
 import { updateTransactionProcessing } from '../redux/transactionProcessing';
@@ -48,24 +48,31 @@ const AccompanimentScreen = (props) => {
   const screenHeight = Math.round(Dimensions.get('window').height);
 
   useEffect(() => {
-    const detectOrientation = () => {
-      if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
-      if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
-      ScreenOrientation.addOrientationChangeListener(info => {
-        if (info.orientationInfo.orientation === 'UNKNOWN') {
-          if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
-          if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
-        } else {
-          if (info.orientationInfo.orientation === 1 || info.orientationInfo.orientation === 2) setScreenOrientation('PORTRAIT');
-          if (info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) setScreenOrientation('LANDSCAPE');
-        }
-      })
-    };
+    // const detectOrientation = async () => {
+    //   if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+    //   if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+    //   if (Platform.OS === 'android') await ScreenOrientation.unlockAsync();
+    //   ScreenOrientation.addOrientationChangeListener(info => {
+    //     console.log('info: ', info)
+    //     if (info.orientationInfo.orientation === 'UNKNOWN') {
+    //       if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+    //       if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+    //     } else {
+    //       if (info.orientationInfo.orientation === 1 || info.orientationInfo.orientation === 2) setScreenOrientation('PORTRAIT');
+    //       if (info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) setScreenOrientation('LANDSCAPE');
+    //     }
+    //   })
+    // };
+    const lockOrientation = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      console.log('orientation locked!')
+    }
     const getDeviceType = async () => {
       const type = await Device.getDeviceTypeAsync();
       setDeviceType(type);
     };
-    detectOrientation();
+    // detectOrientation();
+    lockOrientation();
     getDeviceType();
   }, []);
 
@@ -246,11 +253,11 @@ const AccompanimentScreen = (props) => {
 
   return (
     // user does not have an active subscription
-    !props.user.isSubscribed ? (
+    !props.user.id ? (
       !props.dataLoaded ? (
         <LoadingSpinner />
       ) : (
-          <WelcomeFlow />
+          <WelcomeModal />
         )
     ) : (
         // ==> user has an active subscription
@@ -261,34 +268,33 @@ const AccompanimentScreen = (props) => {
             {
               record ? (
                 // user has clicked 'Record!' button
-                // Platform.OS === 'android' ? (
-                //   <RecordAccompanimentAndroid
-                //     setCameraRef={setCameraRef}
-                //     handleRecordExit={handleRecordExit}
-                //     recording={recording}
-                //     toggleRecord={toggleRecord}
-                //     screenOrientation={screenOrientation}
-                //     startCountdown={startCountdown}
-                //     secs={secs}
-                //     setSecs={setSecs}
-                //     countdown={countdown}
-                //     countdownActive={countdownActive}
-                //     deviceType={deviceType}
-                //   />
-                // ) : (
-                <RecordAccompanimentIos
-                  setCameraRef={setCameraRef}
-                  handleRecordExit={handleRecordExit}
-                  recording={recording}
-                  startCountdown={startCountdown}
-                  secs={secs}
-                  setSecs={setSecs}
-                  countdown={countdown}
-                  countdownActive={countdownActive}
-                  toggleRecord={toggleRecord}
-                  deviceType={deviceType}
-                />
-                // )
+                Platform.OS === 'android' ? (
+                  <RecordAccompanimentAndroid
+                    setCameraRef={setCameraRef}
+                    handleRecordExit={handleRecordExit}
+                    recording={recording}
+                    toggleRecord={toggleRecord}
+                    startCountdown={startCountdown}
+                    secs={secs}
+                    setSecs={setSecs}
+                    countdown={countdown}
+                    countdownActive={countdownActive}
+                    deviceType={deviceType}
+                  />
+                ) : (
+                    <RecordAccompanimentIos
+                      setCameraRef={setCameraRef}
+                      handleRecordExit={handleRecordExit}
+                      recording={recording}
+                      startCountdown={startCountdown}
+                      secs={secs}
+                      setSecs={setSecs}
+                      countdown={countdown}
+                      countdownActive={countdownActive}
+                      toggleRecord={toggleRecord}
+                      deviceType={deviceType}
+                    />
+                  )
               ) : (
                   props.transactionProcessing ? (
                     <LoadingSpinner />
@@ -357,21 +363,21 @@ const AccompanimentScreen = (props) => {
                 dataUri={dataUri} />
             ) : (
                 // preview accompaniment
-                // Platform.OS === 'android' ? (
-                //   <PreviewAccompanimentAndroid
-                //     dataUri={dataUri}
-                //     handleSave={handleSave}
-                //     handleRefresh={handleRefresh}
-                //     screenOrientation={screenOrientation}
-                //   />
-                // ) : (
-                <PreviewAccompanimentIos
-                  dataUri={dataUri}
-                  handleSave={handleSave}
-                  handleRefresh={handleRefresh}
-                  deviceType={deviceType}
-                />
-                // )
+                Platform.OS === 'android' ? (
+                  <PreviewAccompanimentAndroid
+                    dataUri={dataUri}
+                    handleSave={handleSave}
+                    handleRefresh={handleRefresh}
+                    screenOrientation={screenOrientation}
+                  />
+                ) : (
+                    <PreviewAccompanimentIos
+                      dataUri={dataUri}
+                      handleSave={handleSave}
+                      handleRefresh={handleRefresh}
+                      deviceType={deviceType}
+                    />
+                  )
               )
           )
       )

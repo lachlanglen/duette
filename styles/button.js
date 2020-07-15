@@ -33,7 +33,8 @@ const buttonStyles = StyleSheet.create({
     color: 'white',
     marginHorizontal: 7,
     marginVertical: 8,
-    fontWeight: Platform.OS === 'android' ? 'bold' : 'normal',
+    // fontWeight: Platform.OS === 'android' ? 'bold' : 'normal',
+    fontWeight: 'normal'
   }
 });
 

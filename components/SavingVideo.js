@@ -45,6 +45,16 @@ const SavingVideo = (props) => {
   useEffect(() => {
     activateKeepAwake();
     createConnection();
+    const handleAndroid = async () => {
+      const result = await Notifications.setNotificationChannelAsync("chat-messages", {
+        name: "Messages",
+        priority: "max",
+        sound: true,
+        vibrate: [0, 250, 500, 250]
+      });
+      console.log('result: ', result)
+    }
+    if (Platform.OS === 'android') handleAndroid();
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -53,6 +63,7 @@ const SavingVideo = (props) => {
       }),
     });
     Notifications.addNotificationResponseReceivedListener(async res => {
+      console.log('res: ', res)
       if (res.notification.request.content.data.body.type === 'base track') navigation.navigate('Duette')
       else if (res.notification.request.content.data.body.type === 'duette') {
         // check to see if review has been requested
@@ -85,14 +96,18 @@ const SavingVideo = (props) => {
   };
 
   const registerForPushNotificationsAsync = async () => {
+    console.log('hi! in register for push notifications')
     await Notifications.requestPermissionsAsync();
+    console.log('permissions requested')
     try {
       const token = await Notifications.getExpoPushTokenAsync({
         experienceId,
       });
+      console.log('token.data: ', token.data)
       expoPushToken = token.data;
       handleSendToWebsocket();
     } catch (e) {
+      console.log('error: ', e)
       handleSendToWebsocket();
     }
   };

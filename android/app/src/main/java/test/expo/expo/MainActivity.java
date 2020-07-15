@@ -1,4 +1,4 @@
-package test.expo.expo;
+package app.duette.duette;
 
 import android.os.Bundle;
 

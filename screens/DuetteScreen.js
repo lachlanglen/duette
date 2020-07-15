@@ -18,7 +18,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EditDetailsModal from '../components/EditDetailsModal';
 import { getAWSVideoUrl } from '../constants/urls';
 import { toggleUserInfo } from '../redux/userInfo';
-import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
+import WelcomeModal from '../components/WelcomeFlow/WelcomeModal';
 
 const DuetteScreen = (props) => {
 
@@ -181,11 +181,11 @@ const DuetteScreen = (props) => {
   };
 
   return (
-    !props.user.isSubscribed ? (
+    !props.user.id ? (
       !props.dataLoaded ? (
         <LoadingSpinner />
       ) : (
-          <WelcomeFlow />
+          <WelcomeModal />
         )
     ) : (
         showEditDetailsModal && props.selectedVideo.id ? (

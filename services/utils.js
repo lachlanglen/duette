@@ -14,7 +14,7 @@ import { updateRestoringProcessing } from '../redux/restoringProcessing';
 
 const Auth = new AuthService;
 
-export const handleLogin = async () => {
+export const handleFacebookLogin = async () => {
   const permissionsObj = await Auth.loginWithFacebook();
   if (permissionsObj.type === 'success') {
     // console.log('permissionsObj: ', permissionsObj)
@@ -47,11 +47,31 @@ export const handleLogin = async () => {
   }
 }
 
+export const handleAppleLogin = async () => {
+  const response = await Auth.loginWithApple();
+  let success;
+  if (response.authorizationCode) success = true;
+  if (success) {
+    // create/update user
+    // console.log('response: ', response)
+    const { email } = response;
+    const { familyName, givenName } = response.fullName;
+    store.dispatch(createOrUpdateUser({ oAuthId: response.user, name: `${givenName} ${familyName}`, email, isApple: true }));
+    console.log('oAuthId: ', response.user)
+    // set oAuthId on device
+    await SecureStore.setItemAsync('oAuthId', response.user);
+    console.log('item set!')
+  } else {
+    console.log('failure: ', response)
+  }
+}
+
 export const handleLogout = async (displayUserInfo) => {
   try {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('expires');
-    await SecureStore.deleteItemAsync('facebookId');
+    await SecureStore.deleteItemAsync('oAuthId');
+    // await SecureStore.deleteItemAsync('accessToken');
+    // await SecureStore.deleteItemAsync('expires');
+    // await SecureStore.deleteItemAsync('facebookId');
     store.dispatch(clearCurrentUser());
     store.dispatch(toggleUserInfo(!displayUserInfo));
   } catch (e) {
