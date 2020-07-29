@@ -46,13 +46,12 @@ const SavingVideo = (props) => {
     activateKeepAwake();
     createConnection();
     const handleAndroid = async () => {
-      const result = await Notifications.setNotificationChannelAsync("chat-messages", {
-        name: "Messages",
+      const result = await Notifications.setNotificationChannelAsync("duette", {
+        name: "duette",
         priority: "max",
         sound: true,
         vibrate: [0, 250, 500, 250]
       });
-      console.log('result: ', result)
     }
     if (Platform.OS === 'android') handleAndroid();
     Notifications.setNotificationHandler({
@@ -63,16 +62,27 @@ const SavingVideo = (props) => {
       }),
     });
     Notifications.addNotificationResponseReceivedListener(async res => {
-      console.log('res: ', res)
-      if (res.notification.request.content.data.body.type === 'base track') navigation.navigate('Duette')
-      else if (res.notification.request.content.data.body.type === 'duette') {
-        // check to see if review has been requested
-        // if it has, just navigate
-        // if it hasn't, update redux requestReview toggle to 'true' before navigating
-        const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
-        if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
-        navigation.navigate('My Duettes');
-      };
+      if (Platform.OS === 'ios') {
+        if (res.notification.request.content.data.body.type === 'base track') navigation.navigate('Duette')
+        else if (res.notification.request.content.data.body.type === 'duette') {
+          // check to see if review has been requested
+          // if it has, just navigate
+          // if it hasn't, update redux requestReview toggle to 'true' before navigating
+          const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
+          if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
+          navigation.navigate('My Duettes');
+        }
+      } else if (Platform.OS === 'android') {
+        if (res.notification.request.content.data.type === 'base track') navigation.navigate('Duette')
+        else if (res.notification.request.content.data.type === 'duette') {
+          // check to see if review has been requested
+          // if it has, just navigate
+          // if it hasn't, update redux requestReview toggle to 'true' before navigating
+          const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
+          if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
+          navigation.navigate('My Duettes');
+        };
+      }
     });
     handlePost();
   }, []);
@@ -103,6 +113,7 @@ const SavingVideo = (props) => {
       const token = await Notifications.getExpoPushTokenAsync({
         experienceId,
       });
+      console.log('token retrieved!')
       console.log('token.data: ', token.data)
       expoPushToken = token.data;
       handleSendToWebsocket();
@@ -142,6 +153,7 @@ const SavingVideo = (props) => {
         type: 'duette',
         inputBucket: 'duette',
         outputBucket: 'duette',
+        // platform: Platform.OS,
         accompanimentKey,
         duetteKey,
         delay: (customOffset + (date2 - date1)) / 1000,
@@ -152,6 +164,8 @@ const SavingVideo = (props) => {
         email: updatedEmail ? updatedEmail : props.user.email,
         name: props.user.name.split(' ')[0],
         sendEmails: props.user.sendEmails,
+        // TODO: remove line below
+        test: true,
       }));
       deleteLocalFile(duetteUri);
       deleteLocalFile(baseTrackUri);
@@ -160,6 +174,7 @@ const SavingVideo = (props) => {
         type: 'base track',
         inputBucket: 'duette',
         outputBucket: 'duette',
+        // platform: Platform.OS,
         key: tempVidId,
         title,
         composer,

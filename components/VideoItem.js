@@ -1,13 +1,15 @@
 /* eslint-disable complexity */
-import React from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View, Dimensions, StyleSheet, Image, Alert, Platform, ActivityIndicator } from 'react-native';
+import { findNodeHandle, ActionSheetIOS, Text, TouchableOpacity, View, Dimensions, StyleSheet, Image, Alert, Platform, ActivityIndicator } from 'react-native';
 import { Video } from 'expo-av';
 import { getAWSVideoUrl, getAWSThumbnailUrl } from '../constants/urls';
 import { deleteVideo } from '../redux/videos';
 import { setVideo } from '../redux/singleVideo';
+import { fetchVideos } from '../redux/videos';
 import { toggleUpgradeOverlay } from '../redux/upgradeOverlay';
 import buttonStyles from '../styles/button';
+import axios from 'axios';
 
 const VideoItem = (props) => {
 
@@ -29,6 +31,9 @@ const VideoItem = (props) => {
   } = props;
 
   let screenWidth = Math.floor(Dimensions.get('window').width);
+
+  const [flagging, setFlagging] = useState(false);
+  const [flagButtonRef, setFlagButtonRef] = useState(null);
 
   const handlePlaybackStatusUpdate = (updateObj) => {
     if (updateObj.didJustFinish) setPreviewVid('')
@@ -68,6 +73,97 @@ const VideoItem = (props) => {
   const handleToggleUpgradeOverlay = () => {
     props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
   };
+
+  const handleExitBlock = () => {
+    props.fetchVideos(searchText, props.user.id);
+    setFlagging(false);
+  };
+
+  const handleExitFlag = async () => {
+    setFlagging(false);
+    try {
+      await axios.post(`https://duette.herokuapp.com/api/flag/${id}`, { flaggingUserId: props.user.id, flaggedUserId: userId })
+    } catch (e) {
+      throw new Error('error in handleExitFlag: ', e)
+    }
+  }
+
+  const handleBlockUser = async () => {
+    try {
+      // TODO: change url below back to heroku
+      await axios.post('https://duette.herokuapp.com/api/user/block', { blockingUser: props.user.id, userToBlock: userId })
+      Alert.alert(
+        'User Blocked',
+        "You will no longer see this user's videos in search results.",
+        [
+          { text: "OK", onPress: () => handleExitBlock() },
+        ],
+        { cancelable: false }
+      );
+    } catch (e) {
+      Alert.alert(
+        'Error Blocking',
+        'We unfortunately were not able to block this user at this time. Please contact us at support@duette.app or try again later.',
+        [
+          { text: 'OK', onPress: () => setFlagging(false) },
+        ],
+        { cancelable: false }
+      );
+      throw new Error('Error blocking user: ', e);
+    }
+  };
+
+  const handleFlagInappropriateContent = () =>
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ["Cancel", "Flag offensive content", "Block this user"],
+        destructiveButtonIndex: 2,
+        cancelButtonIndex: 0,
+        anchor: findNodeHandle(flagButtonRef)
+      },
+      async buttonIndex => {
+        setFlagging(true);
+        if (buttonIndex === 0) {
+          // cancel action
+          setFlagging(false);
+          console.log('cancelled!')
+        } else if (buttonIndex === 1) {
+          // flag objectionable content
+          // try {
+          // await axios.post(`https://duette.herokuapp.com/api/flag/${id}`, { flaggingUserId: props.user.id, flaggedUserId: userId })
+          Alert.alert(
+            'Content Flagged',
+            'Thank you for flagging this content. We will review it within 24 hours, and take appropriate action if it violates our community guidelines.',
+            [
+              { text: 'OK', onPress: () => handleExitFlag() },
+            ],
+            { cancelable: false }
+          );
+          // } catch (e) {
+          // Alert.alert(
+          //   'Error Flagging',
+          //   'We unfortunately were not able to flag this content at this time. Please contact us at support@duette.app in order to flag this video for inappropriate content.',
+          //   [
+          //     { text: 'OK', onPress: () => setFlagging(false) },
+          //   ],
+          //   { cancelable: false }
+          // );
+          // throw new Error('Error flagging content: ', e);
+          // }
+        } else if (buttonIndex === 2) {
+          // block user's video
+          Alert.alert(
+            'Are you sure?',
+            'This cannot be undone. If you block this user, you will no longer be able to search for or record along with any of their base tracks.',
+            [
+              { text: "Yes, I'm sure", onPress: () => handleBlockUser() },
+              { text: "Cancel", onPress: () => setFlagging(false) },
+            ],
+            { cancelable: false }
+          );
+        }
+      }
+    );
 
   return (
     <View style={styles.item}>
@@ -201,34 +297,59 @@ const VideoItem = (props) => {
         }}>
           {loading.isLoading && loading.id === id ? 'Loading, please wait...' : 'Record Duette!'}
           {
-            loading.isLoading && loading.id === id &&
+            loading.isLoading && loading.id === id && Platform.OS === 'ios' &&
             <ActivityIndicator style={{ marginLeft: 20 }} />
           }
         </Text>
       </TouchableOpacity>
       {
-        props.user.id === userId &&
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-evenly',
-        }}>
-          <TouchableOpacity
-            onPress={handleDelete}>
-            <Text style={{
-              textAlign: 'center',
-              color: 'red',
-              fontSize: 16,
-            }}>Delete</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleEdit}>
-            <Text style={{
-              textAlign: 'center',
-              color: '#0047B9',
-              fontSize: 16,
-            }}>Edit Details</Text>
-          </TouchableOpacity>
-        </View>
+        props.user.id === userId ? (
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+          }}>
+            <TouchableOpacity
+              onPress={handleDelete}>
+              <Text style={{
+                textAlign: 'center',
+                color: 'red',
+                fontSize: 16,
+              }}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleEdit}>
+              <Text style={{
+                textAlign: 'center',
+                color: '#0047B9',
+                fontSize: 16,
+              }}>Edit Details</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+            <TouchableOpacity
+              onPress={handleFlagInappropriateContent}
+              disabled={flagging}
+              ref={ref => setFlagButtonRef(ref)}
+              style={{
+                // width: 24,
+                // height: 24,
+                // alignSelf: 'flex-end',
+                // alignItems: 'center',
+                // justifyContent: 'flex-end',
+                // backgroundColor: 'gray',
+                // marginRight: 10,
+                // marginBottom: 30,
+                // borderRadius: 50,
+              }}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: '#0047B9',
+                  fontSize: 16,
+                }}
+              >{flagging ? 'Flagging...' : 'Flag inappropriate content'}</Text>
+            </TouchableOpacity>
+          )
       }
     </View >
   )
@@ -318,6 +439,7 @@ const mapDispatch = dispatch => {
   return {
     deleteVideo: (userId, videoId, searchText) => dispatch(deleteVideo(userId, videoId, searchText)),
     setVideo: id => dispatch(setVideo(id)),
+    fetchVideos: (text, userId) => dispatch(fetchVideos(text, userId)),
     toggleUpgradeOverlay: bool => dispatch(toggleUpgradeOverlay(bool)),
   }
 };

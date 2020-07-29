@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View, Dimensions, Modal, Alert } from 'react-native';
+import { Text, TouchableOpacity, View, Dimensions, Modal, Alert, StatusBar } from 'react-native';
 import { Camera } from 'expo-camera';
 import { Icon } from 'react-native-elements';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -34,17 +34,17 @@ const RecordAccompaniment = (props) => {
       if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
       await ScreenOrientation.unlockAsync();
       ScreenOrientation.addOrientationChangeListener(info => {
-        if ((info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) && cameraType === 'back') {
-          Alert.alert(
-            'Not supported',
-            "Outward-facing camera is only supported in portrait mode. If you want to flip the camera, please rotate your device.",
-            [
-              { text: 'OK', onPress: () => setCameraType('front') },
-            ],
-            { cancelable: false }
-          );
-          return;
-        }
+        // if ((info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) && cameraType === 'back') {
+        //   Alert.alert(
+        //     'Not supported',
+        //     "Outward-facing camera is only supported in portrait mode. If you want to flip the camera, please rotate your device.",
+        //     [
+        //       { text: 'OK', onPress: () => setCameraType('front') },
+        //     ],
+        //     { cancelable: false }
+        //   );
+        //   return;
+        // }
         if (info.orientationInfo.orientation === 'UNKNOWN') {
           if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
           if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
@@ -91,14 +91,13 @@ const RecordAccompaniment = (props) => {
   //   }
   // };
 
-  console.log('screenOrientation: ', screenOrientation)
-
   return (
     <Modal
       animationType="fade"
       // onOrientationChange={e => handleModalOrientationChange(e)}
       supportedOrientations={['portrait', 'landscape-right']}
     >
+      <StatusBar hidden />
       <View style={{
         flexDirection: screenOrientation === 'PORTRAIT' ? 'column' : 'row',
         justifyContent: 'center',
@@ -395,11 +394,11 @@ const RecordAccompaniment = (props) => {
         </View>
       </View>
       {
-        screenOrientation === 'PORTRAIT' && !recording &&
+        !recording &&
         <View style={{
           position: 'absolute',
-          bottom: screenHeight * 0.183,
-          right: 10,
+          bottom: screenOrientation === 'PORTRAIT' ? screenHeight * 0.2 : 25,
+          right: screenOrientation === 'PORTRAIT' ? 10 : screenWidth * .25 + 25,
         }}>
           <Icon
             onPress={toggleCameraType}

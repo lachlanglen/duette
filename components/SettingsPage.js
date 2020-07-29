@@ -303,8 +303,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   lineContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   inputField: {
     width: '80%',
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   editText: {
     fontSize: 16,
-    marginLeft: 10,
+    marginTop: 10,
     color: '#0047B9',
   },
   saveText: {

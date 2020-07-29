@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
-import { Image, Alert, Text, View, Dimensions, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { PermissionsAndroid, Image, Alert, Text, View, Dimensions, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as StoreReview from 'expo-store-review';
 import * as FileSystem from 'expo-file-system';
@@ -11,6 +11,7 @@ import buttonStyles from '../styles/button';
 import { deleteLocalFile } from '../services/utils';
 import { toggleRequestReview } from '../redux/requestReview';
 import { toggleUserInfo } from '../redux/userInfo';
+// import CameraRoll from "@react-native-community/cameraroll";
 
 const MyDuettesItem = props => {
   const {
@@ -56,11 +57,12 @@ const MyDuettesItem = props => {
     }
   }
 
-  const handleExitAlert = (success) => {
+  const handleExitAlert = (uri, success) => {
     console.log('success: ', success)
     if (success) {
       requestReview();
     }
+    deleteLocalFile(uri);
     setSavingToCameraRoll(false);
     setLoading(false);
     setSelectedDuette('');
@@ -74,35 +76,49 @@ const MyDuettesItem = props => {
         getAWSVideoUrl(`duette/${key}`),
         FileSystem.documentDirectory + `${key}.mov`
       )
+      console.log('uri: ', uri)
       setSavingToCameraRoll(true);
+      // if (Platform.OS === 'ios') {
       try {
         await MediaLibrary.saveToLibraryAsync(uri);
+        // const asset = await MediaLibrary.createAssetAsync(uri);
+        // console.log('asset: ', asset)
+        // const album = await MediaLibrary.createAlbumAsync('Duette', asset)
+        // console.log('album: ', album)
         Alert.alert(
           'Saved!',
-          'This Duette has been saved to your Camera Roll',
+          `This Duette has been saved to your ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'}.`,
           [
-            { text: 'OK', onPress: handleExitAlert('success') },
+            { text: 'OK', onPress: handleExitAlert(uri, 'success') },
           ],
           { cancelable: false }
         );
-        deleteLocalFile(uri);
       } catch (e) {
         Alert.alert(
           `We're sorry`,
-          'This video could not be saved to your camera roll at this time.',
+          `This video could not be saved to your ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'} at this time.`,
           [
-            { text: 'OK', onPress: () => handleExitAlert() },
+            { text: 'OK', onPress: () => handleExitAlert(uri) },
           ],
           { cancelable: false }
         )
-        throw new Error('error saving to camera roll: ', e);
+        throw new Error(`error saving to ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'}: `, e);
       }
+      // } else {
+      //   console.log('line 104')
+      //   try {
+      //     const saved = await CameraRoll.save(uri);
+      //     console.log('saved: ', saved)
+      //   } catch (e) {
+      //     console.log('error saving: ', e)
+      //   }
+      // }
     } catch (e) {
       Alert.alert(
         `We're sorry`,
-        'This video could not be saved to your camera roll at this time.',
+        `This video could not be saved to your ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'} at this time.`,
         [
-          { text: 'OK', onPress: () => handleExitAlert() },
+          { text: 'OK', onPress: () => handleExitAlert(uri) },
         ],
         { cancelable: false }
       )
@@ -115,8 +131,35 @@ const MyDuettesItem = props => {
     setShowPreview(true);
   }
 
+  const hasAndroidPermission = async () => {
+    console.log('in hasAndroidPermission')
+    const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+
+    const hasPermission = await PermissionsAndroid.check(permission);
+    console.log('hasPermission: ', hasPermission)
+    if (hasPermission) {
+      return true;
+    }
+
+    const status = await PermissionsAndroid.request(permission);
+    if (status !== 'granted') {
+      Alert.alert(
+        'Gallery Permission',
+        'We need your permission to save to your Gallery!',
+        [
+          { text: 'OK', onPress: () => setSavingToCameraRoll(false) },
+        ],
+        { cancelable: false }
+      );
+    }
+    console.log('status: ', status)
+    return status === 'granted';
+  }
+
+
   const handleSaveToCameraRoll = async (duetteId, combinedKey) => {
     setSelectedDuette(duetteId);
+    // if (Platform.OS === 'ios') {
     const permission = await MediaLibrary.getPermissionsAsync();
     if (permission.status !== 'granted') {
       const newPermission = await MediaLibrary.requestPermissionsAsync();
@@ -135,6 +178,10 @@ const MyDuettesItem = props => {
     } else {
       saveVideo(combinedKey);
     }
+    // } else {
+    // if (!(hasAndroidPermission())) return;
+    // saveVideo(combinedKey);
+    // }
   };
 
   const handlePlaybackStatusUpdate = (updateObj) => {
@@ -184,6 +231,7 @@ const MyDuettesItem = props => {
                 style={{
                   width: screenWidth * 0.85,
                   height: screenWidth * 0.85 / 16 * 9,
+                  padding: 10,
                   borderRadius: 10,
                   backgroundColor: 'white',
                   opacity: 0.5,
@@ -192,7 +240,8 @@ const MyDuettesItem = props => {
                   justifyContent: 'center',
                 }}>
                 <Text style={{
-                  fontSize: 30,
+                  fontSize: Platform.OS === 'ios' ? 30 : 26,
+                  textAlign: 'center',
                   alignSelf: 'center',
                   fontFamily: 'Gill Sans',
                   fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
@@ -231,14 +280,14 @@ const MyDuettesItem = props => {
               <Text style={{
                 ...buttonStyles.regularButtonText,
                 fontWeight: Platform.OS === 'ios' ? 'normal' : 'bold',
-              }}>Save to Camera Roll
+              }}>{`Save to ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'}`}
               </Text>
             ) : (
                 <View style={{ flexDirection: 'row' }}>
                   <Text style={{
                     ...buttonStyles.regularButtonText,
                     fontWeight: 'normal',
-                  }}>{savingToCameraRoll ? 'Saving to Camera Roll...' : 'Loading...'}
+                  }}>{savingToCameraRoll ? `Saving to ${Platform.OS === 'ios' ? 'Camera Roll' : 'Gallery'}...` : 'Loading...'}
                   </Text>
                   <ActivityIndicator size="small" color="#0047B9" />
                 </View>

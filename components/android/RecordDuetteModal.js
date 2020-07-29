@@ -9,6 +9,7 @@ import ReviewDuette from '../ReviewDuette';
 import RecordDuettePortrait from './RecordDuettePortrait';
 import RecordDuetteLandscape from './RecordDuetteLandscape';
 import { clearVideo } from '../../redux/singleVideo';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 let countdownIntervalId;
 let cancel;
@@ -19,7 +20,6 @@ const RecordDuetteModal = (props) => {
     setShowRecordDuetteModal,
     baseTrackUri,
     setSearchText,
-    screenOrientation,
   } = props;
 
   let screenWidth = Math.floor(Dimensions.get('window').width);
@@ -37,6 +37,7 @@ const RecordDuetteModal = (props) => {
   const [deviceType, setDeviceType] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [hardRefresh, setHardRefresh] = useState(false);
+  const [screenOrientation, setScreenOrientation] = useState('');
 
   const vidRef = useRef(null);
 
@@ -44,12 +45,37 @@ const RecordDuetteModal = (props) => {
   let time2;
   let time3;
 
+  // console.log('screenOrientation in RecordDuetteModal: ', screenOrientation)
+
   useEffect(() => {
     const getDeviceType = async () => {
       const type = await Device.getDeviceTypeAsync();
       setDeviceType(type);
     };
     getDeviceType();
+  }, []);
+
+  useEffect(() => {
+    const detectOrientation = async () => {
+      if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+      if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+      await ScreenOrientation.unlockAsync();
+      ScreenOrientation.addOrientationChangeListener(info => {
+        // console.log('info: ', info)
+        if (info.orientationInfo.orientation === 'UNKNOWN') {
+          if (screenWidth > screenHeight) setScreenOrientation('LANDSCAPE');
+          if (screenWidth < screenHeight) setScreenOrientation('PORTRAIT');
+        } else {
+          if (info.orientationInfo.orientation === 1 || info.orientationInfo.orientation === 2) setScreenOrientation('PORTRAIT');
+          if (info.orientationInfo.orientation === 3 || info.orientationInfo.orientation === 4) setScreenOrientation('LANDSCAPE');
+        }
+      })
+    };
+    detectOrientation();
+    return async () => {
+      // console.log('unmounting')
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }
   }, []);
 
   if (props.selectedVideo.notes && !displayedNotes && vidLoaded && vidDoneBuffering) {
@@ -104,8 +130,10 @@ const RecordDuetteModal = (props) => {
   };
 
   const handleCancel = async () => {
+    console.log('in handleCancel')
     try {
-      // deleteLocalFile(baseTrackUri);
+      deleteLocalFile(baseTrackUri);
+      if (duetteUri) deleteLocalFile(duetteUri);
       setDuetteUri('');
       clearInterval(countdownIntervalId);
       setCountdown(3);
@@ -127,6 +155,7 @@ const RecordDuetteModal = (props) => {
     cancel = true;
     cameraRef.stopRecording();
     setRecording(false);
+    if (duetteUri) deleteLocalFile(duetteUri);
     setDuetteUri('');
     clearInterval(countdownIntervalId);
     setCountdownActive(false);
@@ -191,11 +220,12 @@ const RecordDuetteModal = (props) => {
             // baseTrackUri={baseTrackUri}
             setSearchText={setSearchText}
             setHardRefresh={setHardRefresh}
+            screenOrientation={screenOrientation}
           />
         ) : (
             <Modal
               onRequestClose={handleCancel}
-              supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+              supportedOrientations={['portrait', 'landscape-right']}
             >
               {
                 screenOrientation === 'PORTRAIT' ? (
@@ -215,7 +245,7 @@ const RecordDuetteModal = (props) => {
                 ) : (
                     deviceType === 2 ? (
                       <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: 'white', fontSize: 20 }}>Landscape recording not supported on iPad</Text>
+                        <Text style={{ color: 'white', fontSize: 20 }}>Landscape recording not supported on tablet</Text>
                       </View>
                     ) : (
                         <RecordDuetteLandscape

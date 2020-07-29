@@ -35,7 +35,8 @@ export const setVideo = id => {
   return dispatch => {
     axios.get(`https://duette.herokuapp.com/api/video/${id}`)
       .then(video => {
-        dispatch(setSelectedVideo(video.data))
+        dispatch(setSelectedVideo(video.data));
+        console.log('video set!')
       })
       .catch(e => {
         console.log('error in setVideo: ', e)
@@ -55,7 +56,7 @@ export const updateVideo = (userId, videoId, updatedDetails, searchText) => {
     axios.put(`https://duette.herokuapp.com/api/video/${videoId}/${userId}`, updatedDetails)
       .then(() => {
         dispatch(setErrorRegistered());
-        dispatch(fetchVideos(searchText));
+        dispatch(fetchVideos(searchText, userId));
       })
       .catch(e => {
         console.log('error in updateVideo: ', e)

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { setVideo } from '../redux/singleVideo'
 import HeadphoneDetection from 'react-native-headphone-detection';
 import RecordDuetteModalIos from '../components/ios/RecordDuetteModal';
-// import RecordDuetteModalAndroid from '../components/android/RecordDuetteModal';
+import RecordDuetteModalAndroid from '../components/android/RecordDuetteModal';
 // import Constants from 'expo-constants';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as FileSystem from 'expo-file-system';
@@ -80,11 +80,13 @@ const DuetteScreen = (props) => {
     }
     if (perms.permissions.camera.granted) {
       setHasCameraPermission(true);
+      setLoading({ isLoading: false, id: '' });
       setShowRecordDuetteModal(true);
     } else {
       const { status } = await Permissions.askAsync(Permissions.CAMERA);
       if (status === 'granted') {
         setHasCameraPermission(true);
+        setLoading({ isLoading: false, id: '' });
         setShowRecordDuetteModal(true);
       } else {
         Alert.alert(
@@ -102,9 +104,10 @@ const DuetteScreen = (props) => {
 
   const loadVideo = async (id) => {
     // TODO: show error if not enough storage available?
+    // console.log('hi in loadVideo')
     const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
     const freeDiskStorageMb = freeDiskStorage / 1000000;
-    // console.log('freeDiskStorageMb: ', freeDiskStorageMb)
+    console.log('freeDiskStorageMb: ', freeDiskStorageMb)
     if (freeDiskStorageMb < 100) {
       Alert.alert(
         'Not enough space available',
@@ -119,16 +122,20 @@ const DuetteScreen = (props) => {
       if (previewVid) setPreviewVid('');
       props.setVideo(id);
       try {
-        if (Platform.OS === 'ios') {
-          const { uri } = await FileSystem.downloadAsync(
-            getAWSVideoUrl(id),
-            FileSystem.documentDirectory + `${id}.mov`
-          );
-          setBaseTrackUri(uri);
-          setLoading({ isLoading: false, id: '' });
-        }
+        // if (Platform.OS === 'ios') {
+        console.log('line 124')
+        console.log('videoUrl: ', getAWSVideoUrl(id))
+        const { uri } = await FileSystem.downloadAsync(
+          getAWSVideoUrl(id),
+          FileSystem.documentDirectory + `${id}.mov`
+        );
+        console.log('uri: ', uri)
+        // console.log('line 129')
+        setBaseTrackUri(uri);
+        // }
         getPermissionsAndRecord();
       } catch (e) {
+        console.log('error in DuetteScreen: ', e)
         Alert.alert(
           'Oops...',
           `We encountered a problem downloading this base track. Please check your internet connection and try again.`,
@@ -168,7 +175,8 @@ const DuetteScreen = (props) => {
   };
 
   const setFilteredVideos = text => {
-    props.fetchVideos(text);
+    // console.log('props.user.id in setFilteredVideos: ', props.user.id)
+    props.fetchVideos(text, props.user.id);
   };
 
   const handleSearch = text => {
@@ -205,7 +213,7 @@ const DuetteScreen = (props) => {
               // RECORD A DUETTE
               <View
                 style={styles.container}>
-                {/* {
+                {
                   Platform.OS === 'android' ? (
                     <RecordDuetteModalAndroid
                       setShowRecordDuetteModal={setShowRecordDuetteModal}
@@ -213,14 +221,14 @@ const DuetteScreen = (props) => {
                       baseTrackUri={baseTrackUri}
                       setSearchText={setSearchText}
                     />
-                  ) : ( */}
-                <RecordDuetteModalIos
-                  setShowRecordDuetteModal={setShowRecordDuetteModal}
-                  baseTrackUri={baseTrackUri}
-                  setSearchText={setSearchText}
-                />
-                {/* )
-                } */}
+                  ) : (
+                      <RecordDuetteModalIos
+                        setShowRecordDuetteModal={setShowRecordDuetteModal}
+                        baseTrackUri={baseTrackUri}
+                        setSearchText={setSearchText}
+                      />
+                    )
+                }
               </View>
             ) : (
                 // VIEW VIDEOS
@@ -315,7 +323,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   text: {
-    marginTop: 10,
+    margin: 10,
     alignSelf: 'center',
     textAlign: 'center',
     fontSize: 20,
@@ -339,7 +347,7 @@ const mapState = ({ videos, selectedVideo, displayUserInfo, user, dataLoaded, er
 const mapDispatch = dispatch => {
   return {
     setVideo: id => dispatch(setVideo(id)),
-    fetchVideos: (text) => dispatch(fetchVideos(text)),
+    fetchVideos: (text, userId) => dispatch(fetchVideos(text, userId)),
     toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
   }
 }

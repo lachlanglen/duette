@@ -1,10 +1,12 @@
 /* eslint-disable complexity */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { View, TouchableOpacity, Text, Dimensions, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, Dimensions, StyleSheet, StatusBar } from 'react-native';
+import { Icon } from 'react-native-elements';
 import { Camera } from 'expo-camera';
 import { Video } from 'expo-av';
 import { getAWSVideoUrl } from '../../constants/urls';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const RecordDuettePortrait = (props) => {
   const {
@@ -24,8 +26,16 @@ const RecordDuettePortrait = (props) => {
   let screenWidth = Math.floor(Dimensions.get('window').width);
   let screenHeight = Math.floor(Dimensions.get('window').height);
 
+  const [cameraType, setCameraType] = useState('front');
+
+  const toggleCameraType = () => {
+    if (cameraType === 'front') setCameraType('back');
+    else if (cameraType === 'back') setCameraType('front');
+  };
+
   return (
     <View style={styles.container}>
+      <StatusBar hidden />
       <View style={styles.recordingOrCancelContainer}>
         <TouchableOpacity
           onPress={!recording ? handleCancel : () => { }}
@@ -37,7 +47,7 @@ const RecordDuettePortrait = (props) => {
             textAlign: 'center',
           }}
           >
-            {recording ? 'RECORDING' : 'Cancel'}
+            {recording ? 'REC' : 'Cancel'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -84,7 +94,7 @@ const RecordDuettePortrait = (props) => {
           <Camera
             style={styles.camera}
             ratio="16:9"
-            type={Camera.Constants.Type.front}
+            type={cameraType === 'front' ? Camera.Constants.Type.front : Camera.Constants.Type.back}
             ref={ref => setCameraRef(ref)} >
             <View style={styles.cameraOverlayContainer}>
               <View style={{
@@ -97,6 +107,23 @@ const RecordDuettePortrait = (props) => {
               }} />
             </View>
           </Camera>
+          {
+            !recording &&
+            <View style={{
+              position: 'absolute',
+              bottom: '20%',
+              right: 6,
+            }}>
+              <Icon
+                onPress={toggleCameraType}
+                disabled={countdownActive}
+                name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
+                type="material"
+                color="black"
+                size={deviceType === 2 ? 36 : 26}
+              />
+            </View>
+          }
         </View>
         {
           countdownActive &&
@@ -109,7 +136,7 @@ const RecordDuettePortrait = (props) => {
             justifyContent: 'center',
           }}>
             <Text style={{
-              color: '#0047B9',
+              color: 'white',
               fontSize: deviceType === 2 ? 100 : 70
             }}
             >
@@ -121,7 +148,8 @@ const RecordDuettePortrait = (props) => {
       <View style={styles.recordButtonContainer}>
         <View style={styles.recordTextContainer}>
           <TouchableOpacity
-            onPress={toggleRecord}
+            // onPress={!recording ? startCountdown : toggleRecord}
+            disabled
           >
             <Text style={styles.recordText}>
               {recording ? '' : 'record'}
@@ -130,6 +158,7 @@ const RecordDuettePortrait = (props) => {
         </View>
         <TouchableOpacity
           onPress={!recording ? startCountdown : toggleRecord}
+          disabled={countdownActive}
           style={{
             ...styles.recordButton,
             borderColor: recording ? 'darkred' : 'darkred',

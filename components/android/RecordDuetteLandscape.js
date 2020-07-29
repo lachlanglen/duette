@@ -1,7 +1,8 @@
 /* eslint-disable complexity */
-import React from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { View, TouchableOpacity, Text, Dimensions, StyleSheet } from 'react-native';
+import { Icon } from 'react-native-elements';
 import { Camera } from 'expo-camera';
 import { Video } from 'expo-av';
 import { getAWSVideoUrl } from '../../constants/urls';
@@ -24,6 +25,13 @@ const RecordDuetteLandscape = (props) => {
   let screenWidth = Math.floor(Dimensions.get('window').width);
   let screenHeight = Math.floor(Dimensions.get('window').height);
 
+  const [cameraType, setCameraType] = useState('front');
+
+  const toggleCameraType = () => {
+    if (cameraType === 'front') setCameraType('back');
+    else if (cameraType === 'back') setCameraType('front');
+  };
+
   return (
     <View style={{
       ...styles.container,
@@ -37,7 +45,7 @@ const RecordDuetteLandscape = (props) => {
           marginLeft: screenWidth - screenHeight / 9 * 8,
         }}
         ratio="16:9"
-        type={Camera.Constants.Type.front}
+        type={cameraType === 'front' ? Camera.Constants.Type.front : Camera.Constants.Type.back}
         ref={ref => setCameraRef(ref)} >
         <View style={{
           ...styles.recordButtonContainer,
@@ -45,7 +53,8 @@ const RecordDuetteLandscape = (props) => {
           height: screenHeight,
         }}>
           <TouchableOpacity
-            onPress={toggleRecord}
+            // onPress={!recording ? startCountdown : toggleRecord}
+            disabled
           >
             <Text style={styles.recordButtonText}
             >
@@ -54,14 +63,53 @@ const RecordDuetteLandscape = (props) => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={!recording ? startCountdown : toggleRecord}
+            disabled={countdownActive}
             style={{
               ...styles.recordButton,
               borderColor: recording ? 'darkred' : 'darkred',
               backgroundColor: recording ? 'black' : 'red',
+              marginBottom: recording ? 40 : 12,
             }}
           />
         </View>
       </Camera>
+      {
+        !recording &&
+        <View style={{
+          position: 'absolute',
+          bottom: 10,
+          right: 6,
+        }}>
+          <Icon
+            onPress={toggleCameraType}
+            disabled={countdownActive}
+            name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
+            type="material"
+            color="black"
+            size={deviceType === 2 ? 36 : 26}
+          />
+        </View>
+      }
+      {
+        recording &&
+        <TouchableOpacity
+          onPress={handleTryAgain}
+          style={{
+            ...styles.problemContainer,
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            width: '50%',
+            height: 30,
+            alignItems: 'center',
+            alignContent: 'center',
+          }}
+        >
+          <Text
+            style={styles.problemText}>Having a problem? Touch here to try again.
+            </Text>
+        </TouchableOpacity>
+      }
       <View style={{
         ...styles.videoContainer,
         width: screenHeight / 9 * 8,
@@ -98,20 +146,9 @@ const RecordDuetteLandscape = (props) => {
               fontWeight: recording ? 'bold' : 'normal',
             }}
           >
-            {recording ? 'Recording' : 'Cancel'}
+            {recording ? 'REC' : 'Cancel'}
           </Text>
         </TouchableOpacity>
-        {
-          recording &&
-          <TouchableOpacity
-            onPress={handleTryAgain}
-            style={styles.problemContainer}
-          >
-            <Text
-              style={styles.problemText}>Having a problem? Touch here to try again.
-            </Text>
-          </TouchableOpacity>
-        }
       </View>
       {
         countdownActive &&
@@ -124,7 +161,7 @@ const RecordDuetteLandscape = (props) => {
           justifyContent: 'center',
         }}>
           <Text style={{
-            color: '#0047B9',
+            color: 'white',
             fontSize: deviceType === 2 ? 100 : 70
           }}
           >
@@ -162,7 +199,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 50,
-    marginBottom: 35,
   },
   videoContainer: {
     position: 'absolute',
@@ -187,8 +223,8 @@ const styles = StyleSheet.create({
   },
   problemText: {
     color: 'red',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: 14,
+    // marginTop: 20,
   }
 });
 

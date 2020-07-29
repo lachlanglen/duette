@@ -11,6 +11,7 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 import app.duette.duette.generated.BasePackageList;
+// import com.reactnativecommunity.cameraroll.CameraRollPackage;
 
 import org.unimodules.adapters.react.ReactAdapterPackage;
 import org.unimodules.adapters.react.ModuleRegistryAdapter;
@@ -84,6 +85,11 @@ public class MainApplication extends Application implements ReactApplication {
       UpdatesController.initialize(this);
     }
   }
+
+  // @Override    
+  // public boolean canOverrideExistingModule() {        
+  //   return true;    
+  // }
 
   /**
    * Loads Flipper in React Native templates.

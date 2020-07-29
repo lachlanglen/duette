@@ -1,6 +1,6 @@
 import React, { createRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Platform, Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Platform, Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { Input } from 'react-native-elements';
 import { clearVideo } from '../redux/singleVideo';
 import buttonStyles from '../styles/button';
@@ -127,6 +127,7 @@ const Form = (props) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar hidden />
       <Text style={styles.titleText}>{type === 'initial' ? 'Please enter the following details:' : 'Update details:'}</Text>
       <Input
         labelStyle={styles.labelText}

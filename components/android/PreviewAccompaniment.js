@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet, StatusBar } from 'react-native';
 import { Video } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import buttonStyles from '../../styles/button';
@@ -16,6 +16,18 @@ const PreviewAccompaniment = (props) => {
   let screenHeight = Math.floor(Dimensions.get('window').height);
 
   const [screenOrientation, setScreenOrientation] = useState('');
+
+  const handleRedo = () => {
+    Alert.alert(
+      'Are you sure?',
+      "If you continue, the base track you just recorded will be permanently deleted.",
+      [
+        { text: "Yes, I'm sure", onPress: () => handleRefresh() },
+        { text: "Cancel", onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  }
 
   useEffect(() => {
     const detectOrientation = async () => {
@@ -52,6 +64,7 @@ const PreviewAccompaniment = (props) => {
           paddingVertical: screenOrientation === 'PORTRAIT' ? (screenHeight - (screenWidth / 8 * 9)) / 2 : 0,
           height: '100%',
         }}>
+        <StatusBar hidden />
         <View
           style={{
             flexDirection: screenOrientation === 'PORTRAIT' ? 'column' : 'row',
@@ -112,7 +125,7 @@ const PreviewAccompaniment = (props) => {
                 marginVertical: screenOrientation === 'PORTRAIT' ? 0 : 25,
                 marginHorizontal: screenOrientation === 'PORTRAIT' ? 20 : 0,
               }}
-              onPress={handleRefresh}>
+              onPress={handleRedo}>
               <Text style={buttonStyles.regularButtonText}
               >Redo
               </Text>

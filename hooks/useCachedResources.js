@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 // import { connect } from 'react-redux';
 import { Audio } from 'expo-av';
 import * as SecureStore from 'expo-secure-store';
-import * as InAppPurchases from 'expo-in-app-purchases';
+// import * as InAppPurchases from 'expo-in-app-purchases';
 import store from '../redux/store';
 import axios from 'axios';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
@@ -99,60 +99,57 @@ export default function useCachedResources() {
         // await SecureStore.deleteItemAsync('oAuthId');
         // await SecureStore.deleteItemAsync('expires');
         // await SecureStore.deleteItemAsync('facebookId')
-        const oAuthId = await SecureStore.getItemAsync('oAuthId');
-        // check if user has connected with Apple
-        if (oAuthId) {
-          // get user by oAuthId
-          const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${oAuthId}`)).data;
-          console.log('user: ', user);
-          store.dispatch(setUser(user));
+        let oAuthId;
+        if (Platform.OS === 'ios') {
+          oAuthId = await SecureStore.getItemAsync('oAuthId');
+          console.log('oAuthId in useCachedResources: ', oAuthId)
+          // check if user has connected with Apple
+          if (oAuthId) {
+            // get user by oAuthId
+            const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${oAuthId}`)).data;
+            console.log('user: ', user);
+            store.dispatch(setUser(user));
+          }
+        } else if (Platform.OS === 'android') {
+          // check for fb access token expiry
+          const expires = await SecureStore.getItemAsync('expires');
+          console.log('expires: ', expires)
+          // if token is still valid
+          if (parseInt(expires) > parseInt(Date.now().toString().slice(0, 10))) {
+            // user's fb token is current
+            // fetch and set user with facebookId
+            console.log('fb token is valid')
+            const facebookId = await SecureStore.getItemAsync('facebookId');
+            const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${facebookId}`)).data;
+            console.log('user: ', user);
+            store.dispatch(setUser(user));
+            // if (user.isSubscribed && (parseInt(Date.now().toString().slice(0, 10)) < parseInt(user.expires.toString().slice(0, 10)))) {
+            //   // user's subscription is current
+            //   console.log('user subscription is current!')
+            //   console.log('parseInt(user.expires): ', parseInt(user.expires.toString().slice(0, 10)));
+            //   console.log('date.now: ', parseInt(Date.now().toString().slice(0, 10)))
+            //   // store.dispatch(fetchDuettes(user.id));
+            //   store.dispatch(setUser(user));
+            // } else if (user.isSubscribed && (parseInt(Date.now().toString().slice(0, 10)) >= parseInt(user.expires.toString().slice(0, 10)))) {
+            //   // user's subscription has expired but record has not been updated
+            //   console.log("user's subscription has expired")
+            //   // update user record as not subscribed
+            //   try {
+            //     const updated = (await axios.put(`https://duette.herokuapp.com/api/user/${user.id}`, { isSubscribed: false, hasLapsed: true, expires: null })).data;
+            //     console.log('updated user record: ', updated);
+            //     store.dispatch(setUser(updated));
+            //   } catch (e) {
+            //     console.log('error updating user record: ', e)
+            //   }
+            // } else {
+            //   // user's record has already been updated as expired and they have not yet renewed
+            // }
+          }
         }
-        //   // check for fb access token expiry
-        //   const expires = await SecureStore.getItemAsync('expires');
-        //   // if token is still valid
-        //   if (parseInt(expires) > parseInt(Date.now().toString().slice(0, 10))) {
-        //     // user's fb token is current
-        //     // fetch and set user with facebookId
-        //     console.log('fb token is valid')
-        //     const facebookId = await SecureStore.getItemAsync('facebookId');
-        //     const user = (await axios.get(`https://duette.herokuapp.com/api/user/facebookId/${facebookId}`)).data;
-        //     console.log('user: ', user);
-        //     if (user.isSubscribed && (parseInt(Date.now().toString().slice(0, 10)) < parseInt(user.expires.toString().slice(0, 10)))) {
-        //       // user's subscription is current
-        //       console.log('user subscription is current!')
-        //       console.log('parseInt(user.expires): ', parseInt(user.expires.toString().slice(0, 10)));
-        //       console.log('date.now: ', parseInt(Date.now().toString().slice(0, 10)))
-        //       // store.dispatch(fetchDuettes(user.id));
-        //       store.dispatch(setUser(user));
-        //     } else if (user.isSubscribed && (parseInt(Date.now().toString().slice(0, 10)) >= parseInt(user.expires.toString().slice(0, 10)))) {
-        //       // user's subscription has expired but record has not been updated
-        //       console.log("user's subscription has expired")
-        //       // update user record as not subscribed
-        //       try {
-        //         const updated = (await axios.put(`https://duette.herokuapp.com/api/user/${user.id}`, { isSubscribed: false, hasLapsed: true, expires: null })).data;
-        //         console.log('updated user record: ', updated);
-        //         store.dispatch(setUser(updated));
-        //       } catch (e) {
-        //         console.log('error updating user record: ', e)
-        //     }
-        //   } else {
-        //     // user's record has already been updated as expired and they have not yet renewed
-        //     store.dispatch(setUser(user));
-        //   }
-        // }
-        // }
-        store.dispatch(fetchVideos());
+        // store.dispatch(fetchVideos());
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
         });
-        if (Platform.OS === 'android') {
-          // GoogleSignin.configure({
-          //   webClientId: Constants.manifest.extra.GOOGLE_WEB_CLIENT_ID, // client ID of type WEB for your server(needed to verify user ID and offline access)
-          //   offlineAccess: false, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-          //   forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
-          //   accountName: '', // [Android] specifies an account name on the device that should be used
-          // });
-        }
         // setPurchaseListener();
         // await InAppPurchases.connectAsync();
         // console.log('connected to App Store');
@@ -169,9 +166,9 @@ export default function useCachedResources() {
     }
     loadResourcesAndDataAsync();
 
-    return (async () => {
-      await InAppPurchases.disconnectAsync();
-    });
+    // return (async () => {
+    //   await InAppPurchases.disconnectAsync();
+    // });
 
   }, []);
 

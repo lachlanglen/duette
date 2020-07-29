@@ -23,17 +23,15 @@ export const handleFacebookLogin = async () => {
       const basicInfo = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
       const { id, name } = await basicInfo.json();
       const moreInfo = await fetch(`https://graph.facebook.com/${id}?fields=email,picture&access_token=${token}`);
-      const { email, picture } = await moreInfo.json();
+      const { email } = await moreInfo.json();
       // create or update user & store this user on state
-      store.dispatch(createOrUpdateUser({ id, name, picture, email }));
+      store.dispatch(createOrUpdateUser({ id, name, email, isApple: false }));
       // save token and expiry to secure store
       try {
         await SecureStore.setItemAsync('accessToken', token);
         await SecureStore.setItemAsync('expires', expires.toString());
         await SecureStore.setItemAsync('facebookId', id);
-        const user = (await axios.get(`https://duette.herokuapp.com/api/user/facebookId/${id}`)).data;
-        // store.dispatch(fetchDuettes(user.id));
-        // TODO: may have to fix this bandaid solution below
+        const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${id}`)).data;
         if (!store.getState().user.id) store.dispatch(setUser(user));
       } catch (e) {
         throw new Error('error setting access token, expires or facebookId keys on secure store: ', e);

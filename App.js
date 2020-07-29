@@ -8,7 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import * as Notifications from "expo-notifications";
 import * as SecureStore from 'expo-secure-store';
-import * as InAppPurchases from 'expo-in-app-purchases';
+import * as InAsppPurchases from 'expo-in-app-purchases';
 import { Text, TextInput, Platform, StatusBar, StyleSheet, View, SafeAreaView } from 'react-native';
 import store from './redux/store';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
@@ -121,6 +121,7 @@ export default function App(props) {
         <SafeAreaView style={styles.outerContainer} />
         <SafeAreaView style={styles.innerContainer}>
           {Platform.OS === 'ios' && <StatusBar barStyle="dark-content" />}
+          {Platform.OS === 'android' && <StatusBar barStyle='light-content' backgroundColor='#0047B9' />}
           <NavigationContainer
             ref={containerRef}
             // initialState={initialNavigationState}

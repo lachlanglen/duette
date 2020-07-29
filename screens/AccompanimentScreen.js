@@ -10,7 +10,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import DetailsModal from '../components/DetailsModal';
-import { fetchVideos } from '../redux/videos';
+// import { fetchVideos } from '../redux/videos';
 import UserInfoMenu from '../components/UserInfoMenu';
 import RecordAccompanimentAndroid from '../components/android/RecordAccompaniment';
 import RecordAccompanimentIos from '../components/ios/RecordAccompaniment';
@@ -413,7 +413,7 @@ const mapState = ({ user, displayUserInfo, dataLoaded, transactionProcessing }) 
 
 const mapDispatch = dispatch => {
   return {
-    fetchVideos: () => dispatch(fetchVideos()),
+    // fetchVideos: () => dispatch(fetchVideos()),
     toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
     toggleRequestReview: bool => dispatch(toggleRequestReview(bool)),
     updateTransactionProcessing: bool => dispatch(updateTransactionProcessing(bool)),

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "927814748138-qqohd4iut938dpg2sr76v1c047gs0d3j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.duette.duette",
+            "certificate_hash": "5994e865f2acd930e507311467bdb0d6bd3065a8"
+          }
+        },
+        {
           "client_id": "927814748138-78ghcov9tjniv0lqbkcgcp2q4hmvko6k.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -12,7 +12,6 @@
   "dependencies": {
     "@expo/vector-icons": "~10.0.6",
     "@invertase/react-native-apple-authentication": "^1.1.2",
-    "@react-native-community/google-signin": "^4.0.3",
     "@react-native-community/masked-view": "0.1.6",
     "@react-native-community/push-notification-ios": "^1.2.2",
     "@react-navigation/bottom-tabs": "^5.3.1",
@@ -29,7 +28,6 @@
     "expo-device": "^2.1.0",
     "expo-facebook": "^8.1.0",
     "expo-font": "~8.1.0",
-    "expo-google-sign-in": "^8.2.1",
     "expo-in-app-purchases": "^8.1.0",
     "expo-keep-awake": "^8.1.0",
     "expo-linking": "^1.0.1",
