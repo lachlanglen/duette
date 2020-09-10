@@ -82,6 +82,4 @@ web-build/
 # app.json
 /app.json
 
-/android/java_pid49359.hprof
-/android/java_pid47170.hprof
-/android/java_pid45402.hprof
+*.hprof
