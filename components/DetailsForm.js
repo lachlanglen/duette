@@ -2,6 +2,7 @@ import React, { createRef, useState } from 'react';
 import { connect } from 'react-redux';
 import { Platform, Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { Input } from 'react-native-elements';
+import CheckBox from 'react-native-check-box';
 import { clearVideo } from '../redux/singleVideo';
 import buttonStyles from '../styles/button';
 
@@ -22,7 +23,10 @@ const Form = (props) => {
     setShowEditDetailsModal,
     handleSave,
     handleUpdate,
-    type
+    makePrivate,
+    setMakePrivate,
+    type,
+    deviceType,
   } = props;
 
   const handleExitEdit = () => {
@@ -86,7 +90,7 @@ const Form = (props) => {
     } else {
       Alert.alert(
         'Too long',
-        "'Written by' must be 20 characters or less",
+        "'Written by' must be 30 characters or less",
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -101,7 +105,7 @@ const Form = (props) => {
     } else {
       Alert.alert(
         'Too long',
-        "Key must be 10 characters or less",
+        "Key must be 20 characters or less",
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -125,9 +129,26 @@ const Form = (props) => {
     }
   };
 
+  const handleShowPrivateInfo = () => {
+    Alert.alert(
+      'Duette Tip',
+      "Making a Base Track private means that users will only be able to find your video by its unique ID, which will be available to you after saving and which you will have to share with anyone who wants to record along with your video. Your video won't come up in regular Base Track searches. You can always change this later if you want!",
+      [
+        { text: 'OK', onPress: () => { } },
+      ],
+      { cancelable: false }
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <StatusBar hidden />
+    <View style={deviceType === 2 ? {
+      ...styles.container,
+      marginTop: 80,
+    } : {
+        ...styles.container,
+        marginTop: Platform.OS === 'ios' ? 60 : 40,
+      }}>
+      {/* <StatusBar hidden /> */}
       <Text style={styles.titleText}>{type === 'initial' ? 'Please enter the following details:' : 'Update details:'}</Text>
       <Input
         labelStyle={styles.labelText}
@@ -159,11 +180,35 @@ const Form = (props) => {
         placeholder="e.g. B-flat major" />
       <Input
         labelStyle={styles.labelText}
-        containerStyle={styles.inputField}
+        containerStyle={{
+          ...styles.inputField,
+          marginBottom: 0,
+        }}
         onChangeText={val => handleSetNotes(val)}
         value={notes}
         label="Want to add any notes about this track for Duetters? (optional)"
         placeholder={`e.g. "4 measures intro"`} />
+      <CheckBox
+        style={{ flex: 1, paddingLeft: 10, paddingRight: 60 }}
+        onClick={() => setMakePrivate(!makePrivate)}
+        isChecked={makePrivate}
+        leftText={"Make this Base Track private?"}
+        leftTextStyle={{
+          ...styles.labelText,
+          fontWeight: 'bold',
+        }}
+        checkBoxColor='#187795'
+        checkedCheckBoxColor='#187795'
+      />
+      <TouchableOpacity
+        onPress={handleShowPrivateInfo}
+        style={{
+          paddingLeft: 10,
+        }}>
+        <Text style={{
+          color: '#0047B9'
+        }}>What is this?</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={type === 'initial' ? handleSave : handleUpdate}
         disabled={!title || !performer}
@@ -173,6 +218,7 @@ const Form = (props) => {
           width: '40%',
           backgroundColor: !title || !performer ? 'grey' : '#0047B9',
           marginBottom: 14,
+          marginTop: 30,
         }}>
         <Text style={{
           ...buttonStyles.regularButtonText,
@@ -195,7 +241,6 @@ const Form = (props) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: Platform.OS === 'ios' ? 80 : 40,
     marginHorizontal: 20,
   },
   titleText: {

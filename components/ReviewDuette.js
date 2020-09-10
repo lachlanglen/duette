@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { View, Modal, StyleSheet, Platform, Alert } from 'react-native';
 import PreviewAndSync from './PreviewAndSync';
 import * as Device from 'expo-device';
+import { Audio } from 'expo-av';
 import { postDuette } from '../redux/duettes';
 import { deleteLocalFile } from '../services/utils';
 import SavingVideo from './SavingVideo';
@@ -42,6 +43,7 @@ const ReviewDuette = (props) => {
   const [showAddEmailModal, setShowAddEmailModal] = useState(false);
   const [updatedEmail, setUpdatedEmail] = useState(null);
   const [deviceType, setDeviceType] = useState(null);
+  const [shouldShare, setShouldShare] = useState(null);
 
   let pos1;
   let pos2;
@@ -67,7 +69,7 @@ const ReviewDuette = (props) => {
       'Are you sure?',
       "If you continue, your Duette will be saved exactly how you have just previewed it and you will not be able to make further changes.",
       [
-        { text: "Yes, I'm sure", onPress: () => setSaving(true) },
+        { text: "Yes, I'm sure", onPress: props.selectedVideo.userId === props.user.id ? () => handleShouldNotShare() : () => handleShareSettings() },
         { text: "Cancel", onPress: () => { } },
       ],
       { cancelable: false }
@@ -82,6 +84,28 @@ const ReviewDuette = (props) => {
     }
   };
 
+  const handleShouldShare = () => {
+    setShouldShare(true);
+    setSaving(true);
+  };
+
+  const handleShouldNotShare = () => {
+    setShouldShare(false);
+    setSaving(true);
+  };
+
+  const handleShareSettings = () => {
+    Alert.alert(
+      'Care to Share?',
+      `Select "Yes" if you'd like to share this Duette with ${props.selectedVideo.performer}, who recorded the base track. Otherwise, select "No."`,
+      [
+        { text: "Yes", onPress: () => handleShouldShare() },
+        { text: "No", onPress: () => handleShouldNotShare() },
+      ],
+      { cancelable: false }
+    );
+  }
+
   const handleView = () => {
     setDisplayMergedVideo(true);
   };
@@ -91,7 +115,7 @@ const ReviewDuette = (props) => {
     try {
       await vidBRef.setStatusAsync({
         shouldPlay: true,
-        positionMillis: customOffset,
+        positionMillis: customOffset <= 0 ? 0 : customOffset,
         seekMillisToleranceBefore: 0,
         seekMillisToleranceAfter: 0,
         volume: duetteVolume,
@@ -99,22 +123,29 @@ const ReviewDuette = (props) => {
       date1 = Date.now();
       await vidARef.setStatusAsync({
         shouldPlay: true,
-        positionMillis: 0,
+        positionMillis: customOffset <= 0 ? customOffset * -1 : 0,
         seekMillisToleranceBefore: 0,
         seekMillisToleranceAfter: 0,
         volume: baseTrackVolume,
       })
       date2 = Date.now();
       setIsPlaying(true);
+      if (date2 - date1 > 100) handleRestart();
     } catch (e) {
       throw new Error('error in handleShowPreview: ', e, 'duetteUri: ', duetteUri, 'baseTrackUri: ', baseTrackUri)
     }
   };
 
-  const handleRedo = () => {
-    deleteLocalFile(duetteUri);
-    setDuetteUri('');
-    setShowPreviewModal(false);
+  const handleRedo = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+      });
+    } finally {
+      deleteLocalFile(duetteUri);
+      setDuetteUri('');
+      setShowPreviewModal(false);
+    }
   };
 
   const handleGoHome = () => {
@@ -148,14 +179,8 @@ const ReviewDuette = (props) => {
   };
 
   const handleSyncBack = async () => {
-    // TODO: comment out below line
-    // if (customOffset === 0) return;
     try {
-      // if (customOffset <= 0) {
       const { positionMillis } = await vidARef.getStatusAsync();
-      // } else {
-      //   const { positionMillis } = await vidBRef.getStatusAsync();
-      // }
       await vidARef.stopAsync();
       await vidBRef.stopAsync();
       setCustomOffset(customOffset - 50);
@@ -181,10 +206,8 @@ const ReviewDuette = (props) => {
   };
 
   const handleSyncForward = async () => {
-    // TODO: may need to add edge case if video is delayed for full length (would anyone actually do this?!)
     try {
       const { positionMillis } = await vidARef.getStatusAsync();
-      console.log('positionMillis: ', positionMillis)
       await vidARef.stopAsync();
       await vidBRef.stopAsync();
       setCustomOffset(customOffset + 50);
@@ -353,9 +376,6 @@ const ReviewDuette = (props) => {
     }
   };
 
-  // console.log('customOffset: ', customOffset)
-  // console.log('date2 - date1: ', date2 - date1);
-
   return (
     <View style={styles.container}>
       <Modal
@@ -376,6 +396,7 @@ const ReviewDuette = (props) => {
               setSaving={setSaving}
               handleExit={handleGoHome}
               updatedEmail={updatedEmail}
+              shouldShare={shouldShare}
             />
           ) : (
               !showAddEmailModal ? (
@@ -392,9 +413,9 @@ const ReviewDuette = (props) => {
                   handleSave={handleSave}
                   handleRedo={handleRedo}
                   handleSyncBack={handleSyncBack}
+                  handleRestart={handleRestart}
                   handleSyncForward={handleSyncForward}
                   baseTrackUri={baseTrackUri}
-                  handleRestart={handleRestart}
                   reduceBaseTrackVolume={reduceBaseTrackVolume}
                   increaseBaseTrackVolume={increaseBaseTrackVolume}
                   baseTrackVolume={baseTrackVolume}

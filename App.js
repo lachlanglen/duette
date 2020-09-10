@@ -11,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as InAsppPurchases from 'expo-in-app-purchases';
 import { Text, TextInput, Platform, StatusBar, StyleSheet, View, SafeAreaView } from 'react-native';
 import store from './redux/store';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import { Provider } from 'react-redux';
 import axios from 'axios';
@@ -19,6 +20,7 @@ import BottomTabNavigator from './navigation/BottomTabNavigator';
 import LinkingConfiguration from './navigation/LinkingConfiguration';
 import MyDuettes from './components/MyDuettes';
 import SettingsPage from './components/SettingsPage';
+import FAQPage from './components/FAQPage';
 import { updateTransactionProcessing } from './redux/transactionProcessing';
 
 import * as Sentry from '@sentry/react-native';
@@ -128,39 +130,55 @@ export default function App(props) {
             linking={LinkingConfiguration}
           >
             <Provider store={store}>
-              <Stack.Navigator>
-                <Stack.Screen
-                  name="Root"
-                  component={BottomTabNavigator} />
-                <Stack.Screen
-                  name="My Duettes"
-                  component={MyDuettes}
-                  options={{
-                    headerStyle: {
-                      backgroundColor: '#0047B9',
-                    },
-                    headerTitleStyle: {
-                      color: 'white',
-                    },
-                    headerTintColor: 'white',
-                    headerBackTitle: 'Back',
-                  }}
-                />
-                <Stack.Screen
-                  name="Settings"
-                  component={SettingsPage}
-                  options={{
-                    headerStyle: {
-                      backgroundColor: '#0047B9',
-                    },
-                    headerTitleStyle: {
-                      color: 'white',
-                    },
-                    headerTintColor: 'white',
-                    headerBackTitle: 'Back',
-                  }}
-                />
-              </Stack.Navigator>
+              <ActionSheetProvider>
+                <Stack.Navigator>
+                  <Stack.Screen
+                    name="Root"
+                    component={BottomTabNavigator} />
+                  <Stack.Screen
+                    name="My Duettes"
+                    component={MyDuettes}
+                    options={{
+                      headerStyle: {
+                        backgroundColor: '#0047B9',
+                      },
+                      headerTitleStyle: {
+                        color: 'white',
+                      },
+                      headerTintColor: 'white',
+                      headerBackTitle: 'Back',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="Settings"
+                    component={SettingsPage}
+                    options={{
+                      headerStyle: {
+                        backgroundColor: '#0047B9',
+                      },
+                      headerTitleStyle: {
+                        color: 'white',
+                      },
+                      headerTintColor: 'white',
+                      headerBackTitle: 'Back',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="FAQ"
+                    component={FAQPage}
+                    options={{
+                      headerStyle: {
+                        backgroundColor: '#0047B9',
+                      },
+                      headerTitleStyle: {
+                        color: 'white',
+                      },
+                      headerTintColor: 'white',
+                      headerBackTitle: 'Back',
+                    }}
+                  />
+                </Stack.Navigator>
+              </ActionSheetProvider>
             </Provider>
           </NavigationContainer>
         </SafeAreaView>

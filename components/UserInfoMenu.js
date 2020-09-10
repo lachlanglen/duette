@@ -13,8 +13,8 @@ const UserInfoMenu = (props) => {
   const navigation = useNavigation();
 
   const handlePress = (type) => {
-    if (type === 'duettes' || type === 'settings') {
-      navigation.navigate(type === 'duettes' ? 'My Duettes' : 'Settings');
+    if (type === 'My Duettes' || type === 'Settings' || type === 'FAQ') {
+      navigation.navigate(type);
     } else if (type === 'upgrade') {
       props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
     }
@@ -49,7 +49,7 @@ const UserInfoMenu = (props) => {
           ...styles.optionContainer,
           borderRadius: 0,
         }}
-        onPress={() => handlePress('duettes')}
+        onPress={() => handlePress('My Duettes')}
       >
         <Text
           style={styles.optionText}>My Duettes
@@ -60,10 +60,26 @@ const UserInfoMenu = (props) => {
           ...styles.optionContainer,
           borderRadius: 0,
         }}
-        onPress={() => handlePress('settings')}
+        onPress={() => handlePress('Settings')}
       >
         <Text
           style={styles.optionText}>Settings
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{
+          ...styles.optionContainer,
+          borderRadius: 0,
+          backgroundColor: 'green'
+        }}
+        onPress={() => handlePress('FAQ')}
+      >
+        <Text
+          style={{
+            ...styles.optionText,
+            // fontWeight: 'bold',
+            color: 'white',
+          }}>FAQ
         </Text>
       </TouchableOpacity>
       {/* <TouchableOpacity

@@ -23,10 +23,11 @@ export const fetchVideos = (text, userId) => {
   // console.log('text, userId in fetchVideos: ', text, userId)
   return dispatch => {
     // TODO: change below url back to heroku
+    // 192.168.0.6:5000
     axios.get(`https://duette.herokuapp.com/api/video/withUserId/${userId}${text ? `/?val=${text}` : ''}`)
       .then(vids => dispatch(setVideos(vids.data)))
       .catch(e => {
-        throw new Error('error in setVideos thunk: ', e)
+        throw new Error('error in fetchVideos thunk: ', e)
       })
   };
 };

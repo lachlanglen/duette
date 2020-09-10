@@ -65,7 +65,7 @@ const AccompanimentScreen = (props) => {
     // };
     const lockOrientation = async () => {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-      console.log('orientation locked!')
+      // console.log('orientation locked!')
     }
     const getDeviceType = async () => {
       const type = await Device.getDeviceTypeAsync();
@@ -96,6 +96,8 @@ const AccompanimentScreen = (props) => {
       setRecording(true);
       startTimer();
       const vid = await cameraRef.recordAsync({ quality: Camera.Constants.VideoQuality['720p'] });
+      const info = await FileSystem.getInfoAsync(vid.uri);
+      console.log('info: ', info)
       setDataUri(vid.uri)
     } catch (e) {
       Alert.alert(
@@ -130,11 +132,11 @@ const AccompanimentScreen = (props) => {
         );
       } else {
         clearInterval(timerIntervalId);
-        deactivateKeepAwake();
+        // deactivateKeepAwake();
         stopRecording();
       }
     } else {
-      activateKeepAwake();
+      // activateKeepAwake();
       setCountdownActive(false);
       startRecording();
     }
@@ -142,13 +144,15 @@ const AccompanimentScreen = (props) => {
 
   const handleRecordExit = () => {
     handleRefresh();
+    deactivateKeepAwake();
+    console.log('deactivated keep awake')
     setRecord(false);
   };
 
   const handleSave = () => {
     Alert.alert(
       'Agree to Terms',
-      "By saving this base track, you are making it available to any user on the Duette app. You can delete it at any time by searching for the video and selecting 'Delete'. You are also confirming that this video does not contain explicit content. Do you wish to continue?",
+      "By saving this base track, you are making it available to any user on the Duette app. You can delete it at any time by searching for the video and selecting 'Delete'. You are also confirming that this video does not contain inappropriate content. Do you wish to continue?",
       [
         { text: 'Yes, I agree', onPress: () => setShowDetailsModal(true) },
         { text: 'Cancel', onPress: () => { } },
@@ -231,11 +235,13 @@ const AccompanimentScreen = (props) => {
     }
     if (perms.permissions.camera.granted) {
       setHasCameraPermission(true);
+      activateKeepAwake();
       setRecord(true);
     } else {
       const { status } = await Permissions.askAsync(Permissions.CAMERA);
       if (status === 'granted') {
         setHasCameraPermission(true);
+        activateKeepAwake();
         setRecord(true);
       } else {
         Alert.alert(
@@ -307,7 +313,7 @@ const AccompanimentScreen = (props) => {
                           style={{
                             ...styles.logoAndButtonsContainer,
                             height: screenHeight * 0.9,
-                            marginTop: screenHeight < 800 ? 40 : 0,
+                            // marginTop: screenHeight < 800 ? 40 : 0,
                             justifyContent: screenHeight < 800 ? 'flex-start' : 'center',
                             // justifyContent: deviceType === 2 ? 'center' : 'flex-start',
                           }}>
@@ -326,13 +332,14 @@ const AccompanimentScreen = (props) => {
                               <Text style={{
                                 ...buttonStyles.regularButtonText,
                                 fontSize: deviceType === 2 ? 30 : 22,
-                              }}>Record a base track</Text>
+                              }}>Record a Base Track</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               style={{
                                 ...buttonStyles.regularButton,
                                 width: deviceType === 2 ? screenWidth * 0.5 : '60%',
                                 height: 60,
+                                // marginBottom: 10,
                               }}
                               onPress={() => props.navigation.navigate('Duette')}
                             >
@@ -340,6 +347,12 @@ const AccompanimentScreen = (props) => {
                                 ...buttonStyles.regularButtonText,
                                 fontSize: deviceType === 2 ? 30 : 22,
                               }}>Record a Duette</Text>
+                            </TouchableOpacity>
+                            <Text style={{ textAlign: 'center', paddingBottom: 4 }}>Have a question?</Text>
+                            <TouchableOpacity
+                              onPress={() => props.navigation.navigate('FAQ')}
+                            >
+                              <Text style={{ textAlign: 'center', color: '#0047b9' }}>Head over to our FAQs for answers!</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -357,6 +370,7 @@ const AccompanimentScreen = (props) => {
             showDetailsModal ? (
               // add accompaniment details
               <DetailsModal
+                deviceType={deviceType}
                 setPreview={setPreview}
                 setRecord={setRecord}
                 setShowDetailsModal={setShowDetailsModal}
@@ -369,13 +383,15 @@ const AccompanimentScreen = (props) => {
                     handleSave={handleSave}
                     handleRefresh={handleRefresh}
                     screenOrientation={screenOrientation}
+                    setShowDetailsModal={setShowDetailsModal}
                   />
                 ) : (
                     <PreviewAccompanimentIos
                       dataUri={dataUri}
-                      handleSave={handleSave}
+                      // handleSave={handleSave}
                       handleRefresh={handleRefresh}
                       deviceType={deviceType}
+                      setShowDetailsModal={setShowDetailsModal}
                     />
                   )
               )

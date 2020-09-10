@@ -66,6 +66,8 @@ const RecordDuetteModal = (props) => {
     };
     getDeviceType();
     if (Platform.OS === 'ios' && deviceType !== 2) setAudioAsync();
+
+    return () => deactivateKeepAwake();
   }, []);
 
   useEffect(() => {
@@ -112,7 +114,7 @@ const RecordDuetteModal = (props) => {
   const toggleRecord = async () => {
     if (recording) {
       // await axios.post('https://duette.herokuapp.com/api/logger', { cancel })
-      deactivateKeepAwake();
+      // deactivateKeepAwake();
       setRecording(false);
       cameraRef.stopRecording();
       await Audio.setAudioModeAsync({
@@ -176,6 +178,9 @@ const RecordDuetteModal = (props) => {
 
   const handleTryAgain = async () => {
     await vidRef.current.stopAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+    });
     // setPaused(true);
     cancel = true;
     cameraRef.stopRecording();
@@ -192,9 +197,15 @@ const RecordDuetteModal = (props) => {
     setHardRefresh(false);
   };
 
-  const handleReRecord = () => {
-    setHardRefresh(false);
-    setDuetteUri(false);
+  const handleReRecord = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+      });
+    } finally {
+      setHardRefresh(false);
+      setDuetteUri('');
+    }
   };
 
   const confirmReRecord = () => {

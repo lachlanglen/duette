@@ -26,11 +26,13 @@ export const handleFacebookLogin = async () => {
       const { email } = await moreInfo.json();
       // create or update user & store this user on state
       store.dispatch(createOrUpdateUser({ id, name, email, isApple: false }));
+      console.log('line 29')
       // save token and expiry to secure store
       try {
         await SecureStore.setItemAsync('accessToken', token);
         await SecureStore.setItemAsync('expires', expires.toString());
         await SecureStore.setItemAsync('facebookId', id);
+        console.log('line 35')
         const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${id}`)).data;
         if (!store.getState().user.id) store.dispatch(setUser(user));
       } catch (e) {

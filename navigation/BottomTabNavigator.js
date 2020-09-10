@@ -38,7 +38,7 @@ const BottomTabNavigator = (props) => {
         name="Accompaniment"
         component={AccompanimentScreen}
         options={{
-          title: 'Record a base track!',
+          title: 'Record a Base Track!',
           tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="md-musical-note" />,
         }}
       />

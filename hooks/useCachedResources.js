@@ -149,6 +149,7 @@ export default function useCachedResources() {
         // store.dispatch(fetchVideos());
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
+          playThroughEarpieceAndroid: false,
         });
         // setPurchaseListener();
         // await InAppPurchases.connectAsync();

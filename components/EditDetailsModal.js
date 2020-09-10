@@ -4,7 +4,7 @@ import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert }
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
-import Form from './Form';
+import Form from './DetailsForm';
 import { updateVideo, clearVideo } from '../redux/singleVideo';
 import { clearError } from '../redux/error';
 
@@ -18,6 +18,7 @@ const EditDetailsModal = (props) => {
     origSongKey,
     origPerformer,
     origNotes,
+    origIsPrivate,
     setSearchText,
     searchText,
   } = props;
@@ -27,6 +28,7 @@ const EditDetailsModal = (props) => {
   const [songKey, setSongKey] = useState(origSongKey);
   const [performer, setPerformer] = useState(origPerformer);
   const [notes, setNotes] = useState(origNotes);
+  const [makePrivate, setMakePrivate] = useState(origIsPrivate);
   const [updatesSubmitted, setUpdatesSubmitted] = useState(false);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ const EditDetailsModal = (props) => {
   };
 
   const handleUpdate = () => {
-    props.updateVideoDetails(props.user.id, id, { title, composer, key: songKey, performer, notes }, searchText);
+    props.updateVideoDetails(props.user.id, id, { title, composer, key: songKey, performer, notes, isPrivate: makePrivate }, searchText);
     setUpdatesSubmitted(true);
   }
 
@@ -86,6 +88,8 @@ const EditDetailsModal = (props) => {
             setPerformer={setPerformer}
             notes={notes}
             setNotes={setNotes}
+            makePrivate={makePrivate}
+            setMakePrivate={setMakePrivate}
             setShowEditDetailsModal={setShowEditDetailsModal}
             type="update" />
         </KeyboardAwareScrollView>

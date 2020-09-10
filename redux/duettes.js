@@ -19,12 +19,16 @@ export const userDuettesReducer = (state = [], action) => {
   }
 }
 
-export const fetchDuettes = (userId) => {
+export const fetchDuettes = (userId, onSuccess, onFailure) => {
   // console.log("userId in fetchDuettes: ", userId)
   return dispatch => {
     axios.get(`https://duette.herokuapp.com/api/duette/byUserId/${userId}`)
-      .then(duettes => dispatch(setDuettes(duettes.data)))
+      .then(duettes => {
+        dispatch(setDuettes(duettes.data))
+        if (onSuccess) onSuccess();
+      })
       .catch(e => {
+        if (onFailure) onFailure();
         throw new Error('error in fetchDuettes thunk: ', e)
       })
   };
@@ -39,4 +43,20 @@ export const postDuette = (details) => {
       })
   };
 };
+
+export const deleteDuette = ({ duetteId, videoId, userId, onSuccess, onFailure }) => {
+  return dispatch => {
+    axios.delete(`https://duette.herokuapp.com/api/duette/${duetteId}/${userId}`)
+      .then(() => axios.delete(`https://duette.herokuapp.com/api/aws/${videoId}${duetteId}.mov`))
+      .then(() => axios.delete(`https://duette.herokuapp.com/api/aws/${videoId}${duetteId}thumbnail.mov`))
+      .then(() => {
+        dispatch(fetchDuettes(userId));
+        onSuccess();
+      })
+      .catch(e => {
+        onFailure();
+        throw new Error('error in deleteDuette thunk: ', e)
+      })
+  }
+}
 

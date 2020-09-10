@@ -51,7 +51,10 @@ export const createOrUpdateUser = body => {
 };
 
 export const updateUser = (userId, body) => {
+  console.log('body: ', body)
   return dispatch => {
+    // TODO: change below back to duette.herokuapp.com
+    // axios.put(`http://192.168.0.6:5000/api/user/${userId}`, body)
     axios.put(`https://duette.herokuapp.com/api/user/${userId}`, body)
       .then(updated => {
         dispatch(setErrorRegistered());

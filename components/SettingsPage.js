@@ -20,6 +20,9 @@ const SettingsPage = (props) => {
   const [switchValue, setSwitchValue] = useState(props.user.email ? props.user.sendEmails : false);
   const [deviceType, setDeviceType] = useState(null);
   const [updatedEmailSubmitted, setUpdatedEmailSubmitted] = useState(false);
+  const [editName, setEditName] = useState(false);
+  const [name, setName] = useState('');
+  const [updatedNameSubmitted, setUpdatedNameSubmitted] = useState(false);
 
   let screenWidth = Math.round(Dimensions.get('window').width);
   let screenHeight = Math.round(Dimensions.get('window').height);
@@ -67,6 +70,26 @@ const SettingsPage = (props) => {
           { cancelable: false }
         );
       }
+    } else if (updatedNameSubmitted && props.error.errorRegistered) {
+      if (!props.error.isError) {
+        Alert.alert(
+          'Updated!',
+          "Your name has been successfully updated.",
+          [
+            { text: 'OK', onPress: () => handleNameUpdateDone() },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        Alert.alert(
+          'Oops...',
+          `We could not update your name right now. Please try again later.`,
+          [
+            { text: 'OK', onPress: () => handleNameUpdateDone() },
+          ],
+          { cancelable: false }
+        );
+      }
     }
   });
 
@@ -74,7 +97,13 @@ const SettingsPage = (props) => {
     setUpdatedEmailSubmitted(false);
     props.clearError();
     setEditEmail(false);
-  }
+  };
+
+  const handleNameUpdateDone = () => {
+    setUpdatedNameSubmitted(false);
+    props.clearError();
+    setEditName(false);
+  };
 
   const handleViewPrivacyPolicy = async () => {
     // setShowPrivacyPolicyModal(true);
@@ -85,7 +114,7 @@ const SettingsPage = (props) => {
     await Linking.openURL('http://duette.app/terms-of-use');
   }
 
-  const constraints = {
+  const emailConstraints = {
     emailAddress: {
       presence: {
         allowEmpty: false,
@@ -97,8 +126,21 @@ const SettingsPage = (props) => {
     },
   };
 
+  const nameConstraints = {
+    name: {
+      presence: {
+        allowEmpty: false,
+        message: "^Please enter your name"
+      },
+    },
+  };
+
   const handleEditEmail = () => {
     setEditEmail(true);
+  };
+
+  const handleEditName = () => {
+    setEditName(true);
   };
 
   const handleSaveEmail = () => {
@@ -106,14 +148,24 @@ const SettingsPage = (props) => {
     props.updateUser(props.user.id, { email });
   };
 
-  const handleValChange = (val) => {
+  const handleSaveName = () => {
+    setUpdatedNameSubmitted(true);
+    props.updateUser(props.user.id, { name });
+  };
+
+  const handleEmailChange = (val) => {
     if (error) setError(null);
     setEmail(val);
-  }
+  };
+
+  const handleNameChange = (val) => {
+    if (error) setError(null);
+    setName(val);
+  };
 
   const handleValidateEmail = () => {
     setError(null);
-    const validationResult = validate({ emailAddress: email }, constraints);
+    const validationResult = validate({ emailAddress: email }, emailConstraints);
     if (!validationResult) {
       // there are no errors; continue to updating user's email
       Alert.alert(
@@ -131,11 +183,38 @@ const SettingsPage = (props) => {
     }
   };
 
-  const handleCancel = () => {
+  const handleValidateName = () => {
+    setError(null);
+    const validationResult = validate({ name }, nameConstraints);
+    if (!validationResult) {
+      // there are no errors; continue to updating user's name
+      Alert.alert(
+        'Is this correct?',
+        `Please confirm your name: ${name}`,
+        [
+          { text: 'Yes, save it!', onPress: () => handleSaveName() },
+          { text: 'Cancel', onPress: () => { } }
+        ],
+        { cancelable: false }
+      );
+    } else {
+      // there are errors; set them on state and display in UI
+      setError(validationResult.name[0]);
+    }
+  };
+
+  const handleCancelEmail = () => {
     setUpdatedEmailSubmitted(false);
     setError(null);
     props.clearError();
     setEditEmail(false);
+  };
+
+  const handleCancelName = () => {
+    setUpdatedNameSubmitted(false);
+    setError(null);
+    props.clearError();
+    setEditName(false);
   };
 
   const handleUpdateEmailPreferences = (value) => {
@@ -203,16 +282,58 @@ const SettingsPage = (props) => {
                   style={buttonStyles.regularButtonText}>Upgrade for $1.99/month</Text>
               </TouchableOpacity>
             </View> */}
-            <Text style={styles.titleTextBlue}>Your email:</Text>
+            <Text style={styles.titleTextBlue}>Your name:</Text>
             <View style={styles.lineContainer}>
               {
-                !editEmail ? (
-                  <Text style={styles.emailText}>{props.user.email ? props.user.email : 'None provided'}</Text>
+                !editName ? (
+                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{props.user.name}</Text>
                 ) : (
                     <Input
                       // labelStyle={{ marginLeft: 30 }}
                       containerStyle={styles.inputField}
-                      onChangeText={val => handleValChange(val)}
+                      onChangeText={val => handleNameChange(val)}
+                      value={name}
+                      // label="Title"
+                      placeholder="Enter your name here" />
+                  )
+              }
+              {
+                !editName &&
+                <TouchableOpacity
+                  disabled={updatedNameSubmitted}
+                  onPress={handleEditName}>
+                  <Text style={styles.editText}>Edit</Text>
+                </TouchableOpacity>
+              }
+            </View>
+            {
+              error && (
+                <Text style={styles.errorText}>{error}</Text>
+              )
+            }
+            {
+              editName &&
+              <View style={{ flexDirection: 'row' }}>
+                <TouchableOpacity
+                  onPress={handleValidateName}>
+                  <Text style={styles.saveText}>{updatedNameSubmitted ? 'Saving...' : 'Save'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleCancelName}>
+                  <Text style={styles.saveText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            }
+            <Text style={styles.titleTextBlue}>Your email:</Text>
+            <View style={styles.lineContainer}>
+              {
+                !editEmail ? (
+                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{props.user.email ? props.user.email : 'None provided'}</Text>
+                ) : (
+                    <Input
+                      // labelStyle={{ marginLeft: 30 }}
+                      containerStyle={styles.inputField}
+                      onChangeText={val => handleEmailChange(val)}
                       value={email}
                       // label="Title"
                       placeholder="Enter your email here" />
@@ -240,7 +361,7 @@ const SettingsPage = (props) => {
                   <Text style={styles.saveText}>{updatedEmailSubmitted ? 'Saving...' : 'Save'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={handleCancel}>
+                  onPress={handleCancelEmail}>
                   <Text style={styles.saveText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -269,7 +390,7 @@ const SettingsPage = (props) => {
             <TouchableOpacity
               onPress={() => Linking.openURL('mailto:support@duette.app')}
             >
-              <Text style={styles.emailText}>support@duette.app</Text>
+              <Text style={styles.tierText}>support@duette.app</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleViewPrivacyPolicy}
@@ -307,7 +428,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputField: {
-    width: '80%',
+    width: 300,
     marginTop: 10,
   },
   titleTextBlue: {
@@ -349,11 +470,11 @@ const styles = StyleSheet.create({
     // fontStyle: 'italic',
     fontWeight: 'bold',
   },
-  emailText: {
-    fontSize: 18,
-    marginTop: 10,
-    fontWeight: 'bold',
-  },
+  // emailText: {
+  //   fontSize: 18,
+  //   marginTop: 10,
+  //   fontWeight: 'bold',
+  // },
   errorText: {
     color: 'red',
     marginTop: 4,

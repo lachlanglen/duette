@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet, StatusBar } from 'react-native';
+import { Text, TouchableOpacity, View, Dimensions, Modal, StyleSheet, StatusBar, Alert } from 'react-native';
 import { Video } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import buttonStyles from '../../styles/button';
@@ -8,8 +8,9 @@ import buttonStyles from '../../styles/button';
 const PreviewAccompaniment = (props) => {
   const {
     dataUri,
-    handleSave,
+    // handleSave,
     handleRefresh,
+    setShowDetailsModal,
   } = props;
 
   let screenWidth = Math.floor(Dimensions.get('window').width);
@@ -113,7 +114,7 @@ const PreviewAccompaniment = (props) => {
                 marginVertical: screenOrientation === 'PORTRAIT' ? 0 : 25,
                 marginHorizontal: screenOrientation === 'PORTRAIT' ? 20 : 0,
               }}
-              onPress={handleSave}>
+              onPress={() => setShowDetailsModal(true)}>
               <Text style={buttonStyles.regularButtonText}
               >Save
               </Text>
