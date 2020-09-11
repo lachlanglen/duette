@@ -82,4 +82,5 @@ web-build/
 # app.json
 /app.json
 
+# android hprof files
 *.hprof
