@@ -59,7 +59,7 @@ function getHeaderTitle(route, user) {
 
   switch (routeName) {
     case 'Accompaniment':
-      return `Welcome${user.name ? `, ${user.name.split(' ')[0]}` : ' to Duette'}!`;
+      return `Welcome${!user.name.includes('null') ? `, ${user.name.split(' ')[0]}` : ' to Duette'}!`;
     case 'Duette':
       return `${user.name ? 'Choose a base track' : 'Welcome to Duette!'}`;
   }
