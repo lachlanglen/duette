@@ -41,6 +41,7 @@
     "expo-store-review": "^2.1.0",
     "expo-updates": "~0.2.0",
     "expo-web-browser": "~8.2.0",
+    "firebase": "^8.0.2",
     "jetifier": "^1.6.6",
     "react": "~16.13.1",
     "react-dom": "~16.9.0",
