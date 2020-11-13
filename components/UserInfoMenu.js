@@ -41,7 +41,7 @@ const UserInfoMenu = (props) => {
         <Text style={{
           ...styles.optionText,
           color: '#0047B9',
-        }}>Logged in as {props.user.name}
+        }}>Logged in{!props.user.name.includes('null') && ` as ${props.user.name}`}
         </Text>
       </View>
       <TouchableOpacity
@@ -108,7 +108,16 @@ const UserInfoMenu = (props) => {
           borderTopLeftRadius: 0,
           borderTopRightRadius: 0,
         }}
-        onPress={() => handleLogout(props.displayUserInfo)}>
+        onPress={() => handleLogout(props.displayUserInfo, () => {
+          Alert.alert(
+            'Oops',
+            `Logout could not be completed at this time. Please try again later.`,
+            [
+              { text: 'OK', onPress: () => { } },
+            ],
+            { cancelable: false }
+          );
+        })}>
         <Text
           style={{
             ...styles.optionText,
@@ -136,7 +145,8 @@ const styles = StyleSheet.create({
   },
   optionText: {
     ...buttonStyles.regularButtonText,
-    color: '#0047b9'
+    color: '#0047b9',
+    paddingHorizontal: 10,
   }
 })
 
