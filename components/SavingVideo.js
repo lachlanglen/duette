@@ -136,7 +136,7 @@ const SavingVideo = (props) => {
           shouldShare,
           notificationToken: expoPushToken,
           email: updatedEmail ? updatedEmail : props.user.email,
-          name: props.user.name.split(' ')[0],
+          name: !props.user.name.includes('null') ? props.user.name.split(' ')[0] : '',
           sendEmails: props.user.sendEmails,
           // TODO: remove line below
           // test: true,
@@ -160,7 +160,7 @@ const SavingVideo = (props) => {
           userId: props.user.id,
           notificationToken: expoPushToken,
           email: props.user.email,
-          name: props.user.name.split(' ')[0],
+          name: !props.user.name.includes('null') ? props.user.name.split(' ')[0] : '',
           sendEmails: props.user.sendEmails,
         }));
         deleteLocalFile(dataUri);
