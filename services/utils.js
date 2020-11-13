@@ -11,8 +11,65 @@ import axios from 'axios';
 import { fetchDuettes } from '../redux/duettes';
 import { updateTransactionProcessing } from '../redux/transactionProcessing';
 import { updateRestoringProcessing } from '../redux/restoringProcessing';
+import { firebase } from '../config/index';
 
 const Auth = new AuthService;
+
+export const handleCreateAccountWithFirebase = async (email, password, firstName, lastName, setIsSubmitting) => {
+  const res = await Auth.createAccountWithFirebase(email, password);
+  console.log('res: ', res)
+  const handleSuccess = async () => {
+    await SecureStore.setItemAsync('oAuthId', res.user.uid);
+    setIsSubmitting(false);
+  };
+  const handleFailure = () => {
+    Alert.alert(
+      'Oops',
+      "We were able to create your account at this time. Please try again, and if the problem persists contact us at support@duette.app",
+      [
+        { text: 'OK', onPress: () => setIsSubmitting(false) },
+      ],
+      { cancelable: false }
+    );
+  }
+  store.dispatch(createOrUpdateUser({ oAuthId: res.user.uid, name: firstName + ' ' + lastName, email, isApple: false, onSuccess: handleSuccess, onFailure: handleFailure }));
+  return;
+};
+
+export const handleLoginWithFirebase = async (email, password, setIsSubmitting) => {
+  const res = await Auth.loginWithFirebase(email, password);
+  console.log('res.success: ', res.success)
+  const handleSuccess = async () => {
+    await SecureStore.setItemAsync('oAuthId', res.user.uid);
+    setIsSubmitting(false);
+  };
+  const handleFailure = () => {
+    Alert.alert(
+      'Oops',
+      "We were able to log you in at this time. Please try again, and if the problem persists contact us at support@duette.app",
+      [
+        { text: 'OK', onPress: () => setIsSubmitting(false) },
+      ],
+      { cancelable: false }
+    );
+  }
+  if (res.success) store.dispatch(createOrUpdateUser({ oAuthId: res.user.uid, onSuccess: handleSuccess, onFailure: handleFailure }));
+  else return Alert.alert(
+    'Invalid Password',
+    "The password you entered is incorrect. Please try again or select 'Forgot Password.'",
+    [
+      { text: 'OK', onPress: () => setIsSubmitting(false) },
+    ],
+    { cancelable: false }
+  );;
+};
+
+export const handleResetFirebasePassword = async (email, onSuccess, onFailure) => {
+  const res = await Auth.resetFirebasePassword(email)
+  console.log('res line 69: ', res)
+  if (res.success) onSuccess();
+  else if (!res.success) onFailure();
+};
 
 export const handleFacebookLogin = async () => {
   const permissionsObj = await Auth.loginWithFacebook();
@@ -66,16 +123,22 @@ export const handleAppleLogin = async () => {
   }
 }
 
-export const handleLogout = async (displayUserInfo) => {
+export const handleLogout = async (displayUserInfo, onFailure) => {
   try {
-    await SecureStore.deleteItemAsync('oAuthId');
-    // await SecureStore.deleteItemAsync('accessToken');
-    // await SecureStore.deleteItemAsync('expires');
-    // await SecureStore.deleteItemAsync('facebookId');
-    store.dispatch(clearCurrentUser());
-    store.dispatch(toggleUserInfo(!displayUserInfo));
+    const res = await Auth.logoutWithFirebase();
+    if (res.success) {
+      await SecureStore.deleteItemAsync('oAuthId');
+      // await SecureStore.deleteItemAsync('accessToken');
+      // await SecureStore.deleteItemAsync('expires');
+      // await SecureStore.deleteItemAsync('facebookId');
+      store.dispatch(clearCurrentUser());
+      store.dispatch(toggleUserInfo(!displayUserInfo));
+    } else {
+      // logout failed
+      if (onFailure) onFailure();
+    }
   } catch (e) {
-    throw new Error('error deleting items from secure store: ', e);
+    throw new Error('error logging out: ', e);
   }
 };
 
