@@ -29,8 +29,7 @@ export const userReducer = (state = {}, action) => {
   }
 };
 
-export const createOrUpdateUser = body => {
-  const { oAuthId, name, email, isApple } = body;
+export const createOrUpdateUser = ({ oAuthId, name, email, isApple, onSuccess, onFailure }) => {
   return dispatch => {
     axios.post('https://duette.herokuapp.com/api/user',
       {
@@ -41,10 +40,12 @@ export const createOrUpdateUser = body => {
         isApple,
       })
       .then(user => {
-        dispatch(setUser(user.data))
+        dispatch(setUser(user.data));
+        if (onSuccess) onSuccess()
       })
       .catch(e => {
         console.log('error in setUser thunk: ', e)
+        if (onFailure) onFailure();
         throw new Error('error in setUser thunk: ', e)
       });
   };
