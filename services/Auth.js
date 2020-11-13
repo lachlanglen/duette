@@ -9,6 +9,50 @@ import { config } from '../config';
 
 export default class AuthService {
 
+  async loginWithFirebase(email, password) {
+    try {
+      const userRecord = await config.firebase.auth().signInWithEmailAndPassword(email, password)
+      console.log("userRecord: ", userRecord);
+      return { success: true, ...userRecord };
+    } catch (e) {
+      console.log("error in loginWithFirebase: ", e)
+      return { success: false }
+    }
+  }
+
+  async createAccountWithFirebase(email, password) {
+    try {
+      const newRecord = await config.firebase.auth().createUserWithEmailAndPassword(email, password)
+      console.log("newRecord: ", newRecord);
+      return newRecord;
+      // create user in db
+    } catch (e) {
+      console.log("error in createAccountWithFirebase: ", e)
+      return;
+    }
+  }
+
+  async resetFirebasePassword(email) {
+    try {
+      const reset = await config.firebase.auth().sendPasswordResetEmail(email);
+      console.log('reset: ', reset)
+      return { success: true }
+    } catch (e) {
+      console.log('error sending reset email: ', e)
+      return { success: false }
+    }
+  }
+
+  async logoutWithFirebase() {
+    try {
+      await config.firebase.auth().signOut();
+      return { success: true }
+    } catch (e) {
+      console.log('error in logoutWithFirebase: ', e);
+      return { success: false }
+    }
+  }
+
   async loginWithFacebook() {
     await Facebook.initializeAsync(config.facebook.appId);
     const res = await Facebook.logInWithReadPermissionsAsync(
