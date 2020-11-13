@@ -286,7 +286,7 @@ const SettingsPage = (props) => {
             <View style={styles.lineContainer}>
               {
                 !editName ? (
-                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{props.user.name}</Text>
+                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{!props.user.name.includes('null') ? props.user.name : 'None provided'}</Text>
                 ) : (
                     <Input
                       // labelStyle={{ marginLeft: 30 }}
@@ -302,7 +302,7 @@ const SettingsPage = (props) => {
                 <TouchableOpacity
                   disabled={updatedNameSubmitted}
                   onPress={handleEditName}>
-                  <Text style={styles.editText}>Edit</Text>
+                  <Text style={styles.editText}>{!props.user.name.includes('null') ? 'Edit' : 'Add'}</Text>
                 </TouchableOpacity>
               }
             </View>
@@ -344,7 +344,7 @@ const SettingsPage = (props) => {
                 <TouchableOpacity
                   disabled={updatedEmailSubmitted}
                   onPress={handleEditEmail}>
-                  <Text style={styles.editText}>Edit</Text>
+                  <Text style={styles.editText}>{props.user.email ? 'Edit' : 'Add'}</Text>
                 </TouchableOpacity>
               }
             </View>
