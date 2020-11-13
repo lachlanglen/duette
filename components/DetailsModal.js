@@ -22,7 +22,7 @@ const DetailsModal = (props) => {
   const [title, setTitle] = useState('');
   const [composer, setComposer] = useState('');
   const [songKey, setSongKey] = useState('');
-  const [performer, setPerformer] = useState(props.user.name);
+  const [performer, setPerformer] = useState(!props.user.name.includes('null') ? props.user.name : '');
   const [notes, setNotes] = useState('');
   const [showAddEmailModal, setShowAddEmailModal] = useState(false);
   const [updatedEmail, setUpdatedEmail] = useState(null);
