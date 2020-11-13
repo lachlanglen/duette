@@ -9,6 +9,7 @@ import { updateUser } from '../redux/user';
 const AddEmailModal = (props) => {
   const {
     showConfirmAlert,
+    setSaving,
     setUpdatedEmail,
   } = props;
 
@@ -31,7 +32,7 @@ const AddEmailModal = (props) => {
     setUpdatedEmail(email);
     props.updateUser(props.user.id, { email })
     // TODO: handle update error
-    showConfirmAlert();
+    setSaving(true);
   };
 
   const handleValidateEmail = () => {
@@ -68,6 +69,8 @@ const AddEmailModal = (props) => {
   const handleSave = () => {
     setSaving(true);
   }
+
+  console.log('in addemailmodal')
 
   return (
     <View style={styles.container}>

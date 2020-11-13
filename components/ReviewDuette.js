@@ -428,6 +428,7 @@ const ReviewDuette = (props) => {
                   <AddEmailModal
                     showConfirmAlert={showConfirmAlert}
                     setUpdatedEmail={setUpdatedEmail}
+                    setSaving={setSaving}
                   />
                 )
             )

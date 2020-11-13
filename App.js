@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as Notifications from "expo-notifications";
 import * as SecureStore from 'expo-secure-store';
 import * as InAsppPurchases from 'expo-in-app-purchases';
-import { Text, TextInput, Platform, StatusBar, StyleSheet, View, SafeAreaView } from 'react-native';
+import { Text, TextInput, Platform, StatusBar, StyleSheet, View, SafeAreaView, LogBox } from 'react-native';
 import store from './redux/store';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
@@ -38,12 +38,17 @@ TextInput.defaultProps.allowFontScaling = false;
 
 const Stack = createStackNavigator();
 
-console.disableYellowBox = true;
+// LogBox.ignoreLogs();
+
+// console.disableYellowBox = true;
 
 let purchaseUpdateSubscription;
 let purchaseErrorSubscription;
 
 export default function App(props) {
+  console.log('LogBox: ', LogBox)
+  LogBox.ignoreAllLogs();
+
   const isLoadingComplete = useCachedResources();
   const containerRef = React.useRef();
 
