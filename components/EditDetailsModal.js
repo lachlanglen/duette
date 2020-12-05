@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
 import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
 import Form from './DetailsForm';

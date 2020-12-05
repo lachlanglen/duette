@@ -466,7 +466,7 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/glog",
 					"${PODS_CONFIGURATION_BUILD_DIR}/react-native-safe-area-context",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.1.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -474,6 +474,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.duette.duette;
 				PRODUCT_NAME = expo;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -490,7 +491,7 @@
 				INFOPLIST_FILE = managedThenEject/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.1.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -498,6 +499,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.duette.duette;
 				PRODUCT_NAME = expo;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};

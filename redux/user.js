@@ -51,19 +51,21 @@ export const createOrUpdateUser = ({ oAuthId, name, email, isApple, onSuccess, o
   };
 };
 
-export const updateUser = (userId, body) => {
-  console.log('body: ', body)
+export const updateUser = (userId, body, { onSuccess, onFailure, onEmailAlreadyExists }) => {
   return dispatch => {
     // TODO: change below back to duette.herokuapp.com
     // axios.put(`http://192.168.0.6:5000/api/user/${userId}`, body)
     axios.put(`https://duette.herokuapp.com/api/user/${userId}`, body)
       .then(updated => {
-        dispatch(setErrorRegistered());
-        dispatch(setUser(updated.data))
+        // dispatch(setErrorRegistered());
+        dispatch(setUser(updated.data));
+        if (onSuccess) onSuccess();
       })
       .catch(e => {
-        dispatch(setError(e));
-        console.log('error in updateUser thunk: ', e)
+        // dispatch(setError(e));
+        console.log('error in updateUser thunk: ', e);
+        if (onEmailAlreadyExists) onEmailAlreadyExists();
+        else if (onFailure) onFailure();
       })
   }
 }

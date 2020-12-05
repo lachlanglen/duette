@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { Platform, Linking, View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { Platform, Linking, View, ScrollView, Text, Modal, StyleSheet, Image, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
 import { Input, Icon } from 'react-native-elements';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Device from 'expo-device';
 import buttonStyles from '../../styles/button';
 import * as SecureStore from 'expo-secure-store';
@@ -306,238 +305,298 @@ const NewUserModal = (props) => {
               {
                 showSignUpFields ? (
                   isNewAccount ? (
-                    <KeyboardAwareScrollView
-                      // contentContainerStyle={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
-                      style={{ width: '100%', height: '100%', }}>
-                      <View
-                        style={{
-                          width: '100%',
-                          // flex: 1,
-                          padding: 10,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Image
-                          source={require('../../assets/images/duette-logo-HD.png')}
+                    <KeyboardAvoidingView
+                      behavior={Platform.OS == "ios" ? "padding" : "height"}
+                      style={{ width: '100%', height: '100%' }}
+                    >
+                      <ScrollView>
+                        <View
                           style={{
-                            ...styles.logo,
-                            marginTop: 15,
-                          }} />
-                        <Text style={{
-                          ...styles.titleText,
-                          fontSize: 22,
-                          textAlign: 'center',
-                          marginBottom: 25,
-                          marginTop: 20,
-                        }}>Create a free account to continue!</Text>
-                        <TouchableOpacity
-                          onPress={() => setIsNewAccount(false)}
-                          style={{ alignItems: 'center' }}>
-                          <Text style={{
-                            color: '#0047B9',
-                            textAlign: 'center',
-                            fontStyle: 'italic',
-                            fontWeight: 'bold',
-                          }}>Already have an account? <Text>Login here.</Text></Text>
-                        </TouchableOpacity>
-                        <Input
-                          labelStyle={styles.labelText}
-                          containerStyle={{
-                            ...styles.inputField,
-                            marginTop: 25,
+                            width: '100%',
+                            // flex: 1,
+                            padding: 10,
+                            alignItems: 'center',
                           }}
-                          onChangeText={val => handleSetFirstName(val)}
-                          value={firstName}
-                          label="First name"
-                          placeholder="Please enter your first name" />
-                        <Input
-                          labelStyle={styles.labelText}
-                          containerStyle={styles.inputField}
-                          onChangeText={val => handleSetLastName(val)}
-                          value={lastName}
-                          label="Last name"
-                          placeholder="Please enter your last name" />
-                        <Input
-                          labelStyle={styles.labelText}
-                          containerStyle={styles.inputField}
-                          onChangeText={val => handleSetEmail(val)}
-                          value={email}
-                          label="Email"
-                          placeholder="Please enter your email" />
-                        <Input
-                          labelStyle={styles.labelText}
-                          containerStyle={styles.inputField}
-                          onChangeText={val => handleSetPassword(val)}
-                          value={password}
-                          label="Password"
-                          secureTextEntry
-                          placeholder="Please enter a password" />
-                        {
-                          password !== null &&
-                          <View style={{ width: '100%' }}>
-                            <View style={styles.passwordRequirementContainer}>
-                              <Icon
-                                name={passwordValidation.charLength ? 'check' : 'clear'}
-                                type="material"
-                                color={passwordValidation.charLength ? 'green' : 'red'}
-                                size={16}
-                              />
-                              <Text
-                                style={{
-                                  ...styles.passwordRequirementText,
-                                  color: passwordValidation.charLength ? 'green' : 'red',
-                                }}
-                              >Must be at least 8 characters long</Text>
-                            </View>
-                            <View style={styles.passwordRequirementContainer}>
-                              <Icon
-                                name={passwordValidation.lowercase ? 'check' : 'clear'}
-                                type="material"
-                                color={passwordValidation.lowercase ? 'green' : 'red'}
-                                size={16}
-                              />
-                              <Text
-                                style={{
-                                  ...styles.passwordRequirementText,
-                                  color: passwordValidation.lowercase ? 'green' : 'red',
-                                }}
-                              >Must contain a lowercase letter</Text>
-                            </View>
-                            <View style={styles.passwordRequirementContainer}>
-                              <Icon
-                                name={passwordValidation.uppercase ? 'check' : 'clear'}
-                                type="material"
-                                color={passwordValidation.uppercase ? 'green' : 'red'}
-                                size={16}
-                              />
-                              <Text
-                                style={{
-                                  ...styles.passwordRequirementText,
-                                  color: passwordValidation.uppercase ? 'green' : 'red',
-                                }}
-                              >Must contain an uppercase letter</Text>
-                            </View>
-                            <View style={styles.passwordRequirementContainer}>
-                              <Icon
-                                name={passwordValidation.special ? 'check' : 'clear'}
-                                type="material"
-                                color={passwordValidation.special ? 'green' : 'red'}
-                                size={16}
-                              />
-                              <Text
-                                style={{
-                                  ...styles.passwordRequirementText,
-                                  color: passwordValidation.special ? 'green' : 'red',
-                                }}
-                              >Must contain a number or special character</Text>
-                            </View>
-                          </View>
-                        }
-                        <Input
-                          labelStyle={{
-                            ...styles.labelText,
-                            // margin: 0,
-                          }}
-                          containerStyle={{
-                            ...styles.inputField,
-                            marginTop: 15,
-                          }}
-                          onChangeText={val => handleSetRetypedPassword(val)}
-                          value={retypedPassword}
-                          label="Confirm Password"
-                          secureTextEntry
-                          placeholder="Please retype your password" />
-                        {
-                          password !== null &&
-                          <View style={styles.passwordRequirementContainer}>
-                            <Icon
-                              name={retypedPassword && retypedPassword === password ? 'check' : 'clear'}
-                              type="material"
-                              color={retypedPassword && retypedPassword === password ? 'green' : 'red'}
-                              size={16}
-                            />
-                            <Text
-                              style={{
-                                ...styles.passwordRequirementText,
-                                color: retypedPassword && retypedPassword === password ? 'green' : 'red',
-                              }}
-                            >Passwords must match</Text>
-                          </View>
-                        }
-                        <TouchableOpacity
-                          style={isReadyToSubmit() && !isSubmitting ? {
-                            ...buttonStyles.regularButton,
-                            marginTop: 15,
-                            marginBottom: 10,
-                            width: deviceType === 2 ? '50%' : '75%',
-                          } : {
-                              ...buttonStyles.disabledButton,
-                              marginTop: 15,
-                              marginBottom: 10,
-                              width: deviceType === 2 ? '50%' : '75%',
-                            }}
-                          disabled={!isReadyToSubmit()}
-                          onPress={() => setShowTerms(true)}
                         >
-                          <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Create Account'}</Text>
-                        </TouchableOpacity>
-                        {
-                          error &&
-                          <Text style={{ color: 'red', marginBottom: 15 }}>{error}</Text>
-                        }
-                        <TouchableOpacity
-                          onPress={handleCancelCreateAccount}
-                          style={{
-                            ...buttonStyles.regularButton,
-                            width: deviceType === 2 ? '50%' : '75%',
-                            backgroundColor: 'tomato',
-                            marginBottom: 0,
-                          }}>
-                          <Text style={buttonStyles.regularButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </KeyboardAwareScrollView>
-                  ) : (
-                      <KeyboardAwareScrollView
-                        contentContainerStyle={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
-                        style={{ width: '100%', height: '100%' }}>
-                        <View style={{ width: '100%', height: '100%', padding: 10, alignItems: 'center', justifyContent: 'center' }}>
                           <Image
                             source={require('../../assets/images/duette-logo-HD.png')}
                             style={{
                               ...styles.logo,
                               marginTop: 15,
                             }} />
+                          <Text style={{
+                            ...styles.titleText,
+                            fontSize: 22,
+                            textAlign: 'center',
+                            marginBottom: 25,
+                            marginTop: 20,
+                          }}>Create a free account to continue!</Text>
+                          <TouchableOpacity
+                            onPress={() => setIsNewAccount(false)}
+                            style={{ alignItems: 'center' }}>
+                            <Text style={{
+                              color: '#0047B9',
+                              textAlign: 'center',
+                              fontStyle: 'italic',
+                              fontWeight: 'bold',
+                            }}>Already have an account? <Text>Login here.</Text></Text>
+                          </TouchableOpacity>
+                          <Input
+                            labelStyle={styles.labelText}
+                            containerStyle={{
+                              ...styles.inputField,
+                              marginTop: 25,
+                            }}
+                            onChangeText={val => handleSetFirstName(val)}
+                            value={firstName}
+                            label="First name"
+                            placeholder="Please enter your first name" />
+                          <Input
+                            labelStyle={styles.labelText}
+                            containerStyle={styles.inputField}
+                            onChangeText={val => handleSetLastName(val)}
+                            value={lastName}
+                            label="Last name"
+                            placeholder="Please enter your last name" />
+                          <Input
+                            labelStyle={styles.labelText}
+                            containerStyle={styles.inputField}
+                            onChangeText={val => handleSetEmail(val)}
+                            value={email}
+                            label="Email"
+                            placeholder="Please enter your email" />
+                          <Input
+                            labelStyle={styles.labelText}
+                            containerStyle={styles.inputField}
+                            onChangeText={val => handleSetPassword(val)}
+                            value={password}
+                            label="Password"
+                            secureTextEntry
+                            placeholder="Please enter a password" />
                           {
-                            showResetPassword ? (
-                              showEmailSent ? (
-                                <View style={{ width: '100%' }}>
-                                  <Text style={{
-                                    ...styles.titleText,
-                                    fontSize: 22,
-                                    textAlign: 'center',
-                                    marginBottom: 15,
-                                  }}>Email sent!</Text>
-                                  <Text style={{
-                                    ...styles.subTitleText,
-                                    fontSize: 18,
-                                    // textAlign: 'center',
-                                    marginTop: 0,
-                                    marginBottom: 15,
-                                  }}>Please check your email for a link to reset your password.</Text>
-                                  <TouchableOpacity
-                                    style={{
-                                      ...buttonStyles.regularButton,
-                                      marginTop: 15,
-                                      // marginBottom: 10,
-                                      width: deviceType === 2 ? '50%' : '75%',
-                                    }}
-                                    onPress={() => handleNavigateToLogin()}
-                                  // disabled={isSubmitting || !resetEmail}
-                                  >
-                                    <Text style={buttonStyles.regularButtonText}>Back to login</Text>
-                                  </TouchableOpacity>
-                                </View>
+                            password !== null &&
+                            <View style={{ width: '100%' }}>
+                              <View style={styles.passwordRequirementContainer}>
+                                <Icon
+                                  name={passwordValidation.charLength ? 'check' : 'clear'}
+                                  type="material"
+                                  color={passwordValidation.charLength ? 'green' : 'red'}
+                                  size={16}
+                                />
+                                <Text
+                                  style={{
+                                    ...styles.passwordRequirementText,
+                                    color: passwordValidation.charLength ? 'green' : 'red',
+                                  }}
+                                >Must be at least 8 characters long</Text>
+                              </View>
+                              <View style={styles.passwordRequirementContainer}>
+                                <Icon
+                                  name={passwordValidation.lowercase ? 'check' : 'clear'}
+                                  type="material"
+                                  color={passwordValidation.lowercase ? 'green' : 'red'}
+                                  size={16}
+                                />
+                                <Text
+                                  style={{
+                                    ...styles.passwordRequirementText,
+                                    color: passwordValidation.lowercase ? 'green' : 'red',
+                                  }}
+                                >Must contain a lowercase letter</Text>
+                              </View>
+                              <View style={styles.passwordRequirementContainer}>
+                                <Icon
+                                  name={passwordValidation.uppercase ? 'check' : 'clear'}
+                                  type="material"
+                                  color={passwordValidation.uppercase ? 'green' : 'red'}
+                                  size={16}
+                                />
+                                <Text
+                                  style={{
+                                    ...styles.passwordRequirementText,
+                                    color: passwordValidation.uppercase ? 'green' : 'red',
+                                  }}
+                                >Must contain an uppercase letter</Text>
+                              </View>
+                              <View style={styles.passwordRequirementContainer}>
+                                <Icon
+                                  name={passwordValidation.special ? 'check' : 'clear'}
+                                  type="material"
+                                  color={passwordValidation.special ? 'green' : 'red'}
+                                  size={16}
+                                />
+                                <Text
+                                  style={{
+                                    ...styles.passwordRequirementText,
+                                    color: passwordValidation.special ? 'green' : 'red',
+                                  }}
+                                >Must contain a number or special character</Text>
+                              </View>
+                            </View>
+                          }
+                          <Input
+                            labelStyle={{
+                              ...styles.labelText,
+                              // margin: 0,
+                            }}
+                            containerStyle={{
+                              ...styles.inputField,
+                              marginTop: 15,
+                            }}
+                            onChangeText={val => handleSetRetypedPassword(val)}
+                            value={retypedPassword}
+                            label="Confirm Password"
+                            secureTextEntry
+                            placeholder="Please retype your password" />
+                          {
+                            password !== null &&
+                            <View style={styles.passwordRequirementContainer}>
+                              <Icon
+                                name={retypedPassword && retypedPassword === password ? 'check' : 'clear'}
+                                type="material"
+                                color={retypedPassword && retypedPassword === password ? 'green' : 'red'}
+                                size={16}
+                              />
+                              <Text
+                                style={{
+                                  ...styles.passwordRequirementText,
+                                  color: retypedPassword && retypedPassword === password ? 'green' : 'red',
+                                }}
+                              >Passwords must match</Text>
+                            </View>
+                          }
+                          <TouchableOpacity
+                            style={isReadyToSubmit() && !isSubmitting ? {
+                              ...buttonStyles.regularButton,
+                              marginTop: 15,
+                              marginBottom: 10,
+                              width: deviceType === 2 ? '50%' : '75%',
+                            } : {
+                                ...buttonStyles.disabledButton,
+                                marginTop: 15,
+                                marginBottom: 10,
+                                width: deviceType === 2 ? '50%' : '75%',
+                              }}
+                            disabled={!isReadyToSubmit()}
+                            onPress={() => setShowTerms(true)}
+                          >
+                            <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Create Account'}</Text>
+                          </TouchableOpacity>
+                          {
+                            error &&
+                            <Text style={{ color: 'red', marginBottom: 15 }}>{error}</Text>
+                          }
+                          <TouchableOpacity
+                            onPress={handleCancelCreateAccount}
+                            style={{
+                              ...buttonStyles.regularButton,
+                              width: deviceType === 2 ? '50%' : '75%',
+                              backgroundColor: 'tomato',
+                              marginBottom: 0,
+                            }}>
+                            <Text style={buttonStyles.regularButtonText}>Cancel</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </ScrollView>
+                    </KeyboardAvoidingView>
+                  ) : (
+                      <KeyboardAvoidingView
+                        behavior={Platform.OS == "ios" ? "padding" : "height"}
+                        style={{ width: '100%', height: '100%' }}
+                      >
+                        <ScrollView>
+                          <View style={{ width: '100%', height: '100%', padding: 10, alignItems: 'center', justifyContent: 'center' }}>
+                            <Image
+                              source={require('../../assets/images/duette-logo-HD.png')}
+                              style={{
+                                ...styles.logo,
+                                marginTop: 15,
+                              }} />
+                            {
+                              showResetPassword ? (
+                                showEmailSent ? (
+                                  <View style={{ width: '100%' }}>
+                                    <Text style={{
+                                      ...styles.titleText,
+                                      fontSize: 22,
+                                      textAlign: 'center',
+                                      marginBottom: 15,
+                                    }}>Email sent!</Text>
+                                    <Text style={{
+                                      ...styles.subTitleText,
+                                      fontSize: 18,
+                                      // textAlign: 'center',
+                                      marginTop: 0,
+                                      marginBottom: 15,
+                                    }}>Please check your email for a link to reset your password.</Text>
+                                    <TouchableOpacity
+                                      style={{
+                                        ...buttonStyles.regularButton,
+                                        marginTop: 15,
+                                        // marginBottom: 10,
+                                        width: deviceType === 2 ? '50%' : '75%',
+                                      }}
+                                      onPress={() => handleNavigateToLogin()}
+                                    // disabled={isSubmitting || !resetEmail}
+                                    >
+                                      <Text style={buttonStyles.regularButtonText}>Back to login</Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                ) : (
+                                    <View style={{ width: '100%' }}>
+                                      <Text style={{
+                                        ...styles.titleText,
+                                        fontSize: 22,
+                                        textAlign: 'center',
+                                        marginBottom: 15,
+                                      }}>Reset your password</Text>
+                                      <Text style={{
+                                        ...styles.subTitleText,
+                                        fontSize: 18,
+                                        // textAlign: 'center',
+                                        marginTop: 0,
+                                        fontStyle: 'italic',
+                                        marginBottom: 15,
+                                      }}>Please enter your email address below and we will send you a link to reset your password.</Text>
+                                      <Input
+                                        labelStyle={styles.labelText}
+                                        containerStyle={{
+                                          ...styles.inputField,
+                                          marginTop: 20,
+                                        }}
+                                        onChangeText={val => handleSetResetEmail(val)}
+                                        value={resetEmail}
+                                        label="Email"
+                                        placeholder="Please enter your email" />
+                                      <TouchableOpacity
+                                        style={isSubmitting || !resetEmail ? {
+                                          ...buttonStyles.disabledButton,
+                                          marginTop: 15,
+                                          marginBottom: 20,
+                                          width: deviceType === 2 ? '50%' : '75%',
+                                        } : {
+                                            ...buttonStyles.regularButton,
+                                            marginTop: 15,
+                                            marginBottom: 20,
+                                            width: deviceType === 2 ? '50%' : '75%',
+                                          }}
+                                        onPress={handleResetPassword}
+                                        disabled={isSubmitting || !resetEmail}
+                                      >
+                                        <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Send reset email'}</Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        onPress={handleCancelResetPassword}
+                                        disabled={isSubmitting}
+                                        style={{
+                                          ...buttonStyles.regularButton,
+                                          width: deviceType === 2 ? '50%' : '75%',
+                                          backgroundColor: 'tomato',
+                                        }}>
+                                        <Text style={buttonStyles.regularButtonText}>Cancel</Text>
+                                      </TouchableOpacity>
+                                    </View>
+                                  )
                               ) : (
                                   <View style={{ width: '100%' }}>
                                     <Text style={{
@@ -545,112 +604,58 @@ const NewUserModal = (props) => {
                                       fontSize: 22,
                                       textAlign: 'center',
                                       marginBottom: 15,
-                                    }}>Reset your password</Text>
-                                    <Text style={{
-                                      ...styles.subTitleText,
-                                      fontSize: 18,
-                                      // textAlign: 'center',
-                                      marginTop: 0,
-                                      fontStyle: 'italic',
-                                      marginBottom: 15,
-                                    }}>Please enter your email address below and we will send you a link to reset your password.</Text>
+                                    }}>Please login to continue</Text>
                                     <Input
                                       labelStyle={styles.labelText}
                                       containerStyle={{
                                         ...styles.inputField,
                                         marginTop: 20,
                                       }}
-                                      onChangeText={val => handleSetResetEmail(val)}
-                                      value={resetEmail}
+                                      onChangeText={val => handleSetEmail(val)}
+                                      value={email}
                                       label="Email"
                                       placeholder="Please enter your email" />
+                                    <Input
+                                      labelStyle={styles.labelText}
+                                      containerStyle={styles.inputField}
+                                      onChangeText={val => handleSetPassword(val)}
+                                      value={password}
+                                      secureTextEntry
+                                      label="Password"
+                                      placeholder="Please enter your password" />
                                     <TouchableOpacity
-                                      style={isSubmitting || !resetEmail ? {
+                                      style={!email || !password || isSubmitting ? {
                                         ...buttonStyles.disabledButton,
-                                        marginTop: 15,
-                                        marginBottom: 20,
-                                        width: deviceType === 2 ? '50%' : '75%',
-                                      } : {
-                                          ...buttonStyles.regularButton,
-                                          marginTop: 15,
-                                          marginBottom: 20,
-                                          width: deviceType === 2 ? '50%' : '75%',
-                                        }}
-                                      onPress={handleResetPassword}
-                                      disabled={isSubmitting || !resetEmail}
-                                    >
-                                      <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Send reset email'}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                      onPress={handleCancelResetPassword}
-                                      disabled={isSubmitting}
-                                      style={{
-                                        ...buttonStyles.regularButton,
-                                        width: deviceType === 2 ? '50%' : '75%',
-                                        backgroundColor: 'tomato',
-                                      }}>
-                                      <Text style={buttonStyles.regularButtonText}>Cancel</Text>
-                                    </TouchableOpacity>
-                                  </View>
-                                )
-                            ) : (
-                                <View style={{ width: '100%' }}>
-                                  <Text style={{
-                                    ...styles.titleText,
-                                    fontSize: 22,
-                                    textAlign: 'center',
-                                    marginBottom: 15,
-                                  }}>Please login to continue</Text>
-                                  <Input
-                                    labelStyle={styles.labelText}
-                                    containerStyle={{
-                                      ...styles.inputField,
-                                      marginTop: 20,
-                                    }}
-                                    onChangeText={val => handleSetEmail(val)}
-                                    value={email}
-                                    label="Email"
-                                    placeholder="Please enter your email" />
-                                  <Input
-                                    labelStyle={styles.labelText}
-                                    containerStyle={styles.inputField}
-                                    onChangeText={val => handleSetPassword(val)}
-                                    value={password}
-                                    secureTextEntry
-                                    label="Password"
-                                    placeholder="Please enter your password" />
-                                  <TouchableOpacity
-                                    style={!email || !password || isSubmitting ? {
-                                      ...buttonStyles.disabledButton,
-                                      marginTop: 15,
-                                      // marginBottom: 10,
-                                      width: '50%',
-                                    } : {
-                                        ...buttonStyles.regularButton,
                                         marginTop: 15,
                                         // marginBottom: 10,
                                         width: '50%',
-                                      }}
-                                    onPress={handleLoginUser}
-                                    disabled={!email || !password || isSubmitting}
-                                  >
-                                    <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Login'}</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    onPress={() => setShowResetPassword(true)}
-                                    style={{ alignItems: 'center' }}>
-                                    <Text style={{ color: 'tomato', fontWeight: 'bold', textAlign: 'center', marginBottom: 10, }}>Forgot password? Reset it here.</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    onPress={() => setIsNewAccount(true)}
-                                    style={{ alignItems: 'center' }}>
-                                    <Text style={{ color: '#0047B9', fontWeight: 'bold', textAlign: 'center' }}>Don't have an account? <Text>Create a free account here.</Text></Text>
-                                  </TouchableOpacity>
-                                </View>
-                              )
-                          }
-                        </View>
-                      </KeyboardAwareScrollView>
+                                      } : {
+                                          ...buttonStyles.regularButton,
+                                          marginTop: 15,
+                                          // marginBottom: 10,
+                                          width: '50%',
+                                        }}
+                                      onPress={handleLoginUser}
+                                      disabled={!email || !password || isSubmitting}
+                                    >
+                                      <Text style={buttonStyles.regularButtonText}>{isSubmitting ? 'Please wait...' : 'Login'}</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      onPress={() => setShowResetPassword(true)}
+                                      style={{ alignItems: 'center' }}>
+                                      <Text style={{ color: 'tomato', fontWeight: 'bold', textAlign: 'center', marginBottom: 10, }}>Forgot password? Reset it here.</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      onPress={() => setIsNewAccount(true)}
+                                      style={{ alignItems: 'center' }}>
+                                      <Text style={{ color: '#0047B9', fontWeight: 'bold', textAlign: 'center' }}>Don't have an account? <Text>Create a free account here.</Text></Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                )
+                            }
+                          </View>
+                        </ScrollView>
+                      </KeyboardAvoidingView>
                     )
                 ) : (
                     <View style={{ width: '100%', alignItems: 'center' }}>
