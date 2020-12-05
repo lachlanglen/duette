@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
 import { View, Modal, StyleSheet, TouchableOpacity, Text, Dimensions, Alert } from 'react-native';
 import { Icon } from 'react-native-elements';
-import { Video } from 'expo-av';
+import { Audio, Video } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { Camera } from 'expo-camera';
 import * as Device from 'expo-device';
@@ -58,7 +58,16 @@ const RecordDuetteModal = (props) => {
       const type = await Device.getDeviceTypeAsync();
       setDeviceType(type);
     };
+    const setAudioAsync = async () => {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+      });
+      console.log('audio set!')
+    };
     getDeviceType();
+    if (Platform.OS === 'ios' && deviceType !== 2) setAudioAsync();
+
+    return () => deactivateKeepAwake();
   }, []);
 
   useEffect(() => {
@@ -104,10 +113,15 @@ const RecordDuetteModal = (props) => {
 
   const toggleRecord = async () => {
     if (recording) {
-      await axios.post('https://duette.herokuapp.com/api/logger', { cancel })
-      deactivateKeepAwake();
+      // await axios.post('https://duette.herokuapp.com/api/logger', { cancel })
+      // deactivateKeepAwake();
       setRecording(false);
       cameraRef.stopRecording();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      console.log('audio settings removed!')
+      await axios.post('https://duette.herokuapp.com/api/logger', { time1, playDelay })
     } else {
       const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
       const freeDiskStorageMb = freeDiskStorage / 1000000;
@@ -121,22 +135,10 @@ const RecordDuetteModal = (props) => {
           { cancelable: false }
         );
       } else {
-        const { audioJack, bluetooth } = await HeadphoneDetection.isAudioDeviceConnected();
-        if (!audioJack && !bluetooth) {
-          Alert.alert(
-            'No Headphones Detected',
-            'You need to be using bluetooth or wired headphones in order to record a Duette. Please connect headphones and try again!',
-            [
-              { text: 'OK', onPress: () => { } },
-            ],
-            { cancelable: false }
-          );
-        } else {
-          activateKeepAwake();
-          setRecording(true);
-          record();
-          play();
-        };
+        activateKeepAwake();
+        setRecording(true);
+        record();
+        play();
       };
     };
   };
@@ -158,6 +160,7 @@ const RecordDuetteModal = (props) => {
   const handleCancel = async () => {
     try {
       deleteLocalFile(baseTrackUri);
+      if (duetteUri) deleteLocalFile(duetteUri);
       setDuetteUri('');
       clearInterval(countdownIntervalId);
       setCountdown(3);
@@ -175,10 +178,14 @@ const RecordDuetteModal = (props) => {
 
   const handleTryAgain = async () => {
     await vidRef.current.stopAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+    });
     // setPaused(true);
     cancel = true;
     cameraRef.stopRecording();
     setRecording(false);
+    if (duetteUri) deleteLocalFile(duetteUri);
     setDuetteUri('');
     clearInterval(countdownIntervalId);
     setCountdownActive(false);
@@ -190,9 +197,15 @@ const RecordDuetteModal = (props) => {
     setHardRefresh(false);
   };
 
-  const handleReRecord = () => {
-    setHardRefresh(false);
-    setDuetteUri(false);
+  const handleReRecord = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+      });
+    } finally {
+      setHardRefresh(false);
+      setDuetteUri('');
+    }
   };
 
   const confirmReRecord = () => {
@@ -235,7 +248,7 @@ const RecordDuetteModal = (props) => {
   const toggleCameraType = () => {
     if (cameraType === 'front') setCameraType('back');
     else if (cameraType === 'back') setCameraType('front');
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -376,6 +389,7 @@ const RecordDuetteModal = (props) => {
                                   }}>
                                     <Icon
                                       onPress={toggleCameraType}
+                                      disabled={countdownActive}
                                       name={cameraType === 'front' ? "camera-rear" : 'camera-front'}
                                       type="material"
                                       color="black"

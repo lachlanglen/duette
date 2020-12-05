@@ -1,10 +1,9 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
-import Form from './Form';
+import Form from './DetailsForm';
 import { updateVideo, clearVideo } from '../redux/singleVideo';
 import { clearError } from '../redux/error';
 
@@ -18,6 +17,7 @@ const EditDetailsModal = (props) => {
     origSongKey,
     origPerformer,
     origNotes,
+    origIsPrivate,
     setSearchText,
     searchText,
   } = props;
@@ -27,6 +27,7 @@ const EditDetailsModal = (props) => {
   const [songKey, setSongKey] = useState(origSongKey);
   const [performer, setPerformer] = useState(origPerformer);
   const [notes, setNotes] = useState(origNotes);
+  const [makePrivate, setMakePrivate] = useState(origIsPrivate);
   const [updatesSubmitted, setUpdatesSubmitted] = useState(false);
 
   useEffect(() => {
@@ -64,7 +65,7 @@ const EditDetailsModal = (props) => {
   };
 
   const handleUpdate = () => {
-    props.updateVideoDetails(props.user.id, id, { title, composer, key: songKey, performer, notes }, searchText);
+    props.updateVideoDetails(props.user.id, id, { title, composer, key: songKey, performer, notes, isPrivate: makePrivate }, searchText);
     setUpdatesSubmitted(true);
   }
 
@@ -73,22 +74,29 @@ const EditDetailsModal = (props) => {
       <Modal
         supportedOrientations={['portrait', 'landscape', 'landscape-right']}
       >
-        <KeyboardAwareScrollView>
-          <Form
-            handleUpdate={handleUpdate}
-            title={title}
-            setTitle={setTitle}
-            composer={composer}
-            setComposer={setComposer}
-            songKey={songKey}
-            setSongKey={setSongKey}
-            performer={performer}
-            setPerformer={setPerformer}
-            notes={notes}
-            setNotes={setNotes}
-            setShowEditDetailsModal={setShowEditDetailsModal}
-            type="update" />
-        </KeyboardAwareScrollView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == "ios" ? "padding" : "height"}
+        // style={styles.container}
+        >
+          <ScrollView>
+            <Form
+              handleUpdate={handleUpdate}
+              title={title}
+              setTitle={setTitle}
+              composer={composer}
+              setComposer={setComposer}
+              songKey={songKey}
+              setSongKey={setSongKey}
+              performer={performer}
+              setPerformer={setPerformer}
+              notes={notes}
+              setNotes={setNotes}
+              makePrivate={makePrivate}
+              setMakePrivate={setMakePrivate}
+              setShowEditDetailsModal={setShowEditDetailsModal}
+              type="update" />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View >
   )

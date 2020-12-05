@@ -11,10 +11,67 @@ import axios from 'axios';
 import { fetchDuettes } from '../redux/duettes';
 import { updateTransactionProcessing } from '../redux/transactionProcessing';
 import { updateRestoringProcessing } from '../redux/restoringProcessing';
+import { firebase } from '../config/index';
 
 const Auth = new AuthService;
 
-export const handleLogin = async () => {
+export const handleCreateAccountWithFirebase = async (email, password, firstName, lastName, setIsSubmitting) => {
+  const res = await Auth.createAccountWithFirebase(email, password);
+  console.log('res: ', res)
+  const handleSuccess = async () => {
+    await SecureStore.setItemAsync('oAuthId', res.user.uid);
+    setIsSubmitting(false);
+  };
+  const handleFailure = () => {
+    Alert.alert(
+      'Oops',
+      "We were able to create your account at this time. Please try again, and if the problem persists contact us at support@duette.app",
+      [
+        { text: 'OK', onPress: () => setIsSubmitting(false) },
+      ],
+      { cancelable: false }
+    );
+  }
+  store.dispatch(createOrUpdateUser({ oAuthId: res.user.uid, name: firstName + ' ' + lastName, email, isApple: false, onSuccess: handleSuccess, onFailure: handleFailure }));
+  return;
+};
+
+export const handleLoginWithFirebase = async (email, password, setIsSubmitting) => {
+  const res = await Auth.loginWithFirebase(email, password);
+  console.log('res.success: ', res.success)
+  const handleSuccess = async () => {
+    await SecureStore.setItemAsync('oAuthId', res.user.uid);
+    setIsSubmitting(false);
+  };
+  const handleFailure = () => {
+    Alert.alert(
+      'Oops',
+      "We were able to log you in at this time. Please try again, and if the problem persists contact us at support@duette.app",
+      [
+        { text: 'OK', onPress: () => setIsSubmitting(false) },
+      ],
+      { cancelable: false }
+    );
+  }
+  if (res.success) store.dispatch(createOrUpdateUser({ oAuthId: res.user.uid, onSuccess: handleSuccess, onFailure: handleFailure }));
+  else return Alert.alert(
+    'Invalid Password',
+    "The password you entered is incorrect. Please try again or select 'Forgot Password.'",
+    [
+      { text: 'OK', onPress: () => setIsSubmitting(false) },
+    ],
+    { cancelable: false }
+  );;
+};
+
+export const handleResetFirebasePassword = async (email, onSuccess, onFailure) => {
+  const res = await Auth.resetFirebasePassword(email)
+  console.log('res line 69: ', res)
+  if (res.success) onSuccess();
+  else if (!res.success) onFailure();
+};
+
+export const handleFacebookLogin = async () => {
   const permissionsObj = await Auth.loginWithFacebook();
   if (permissionsObj.type === 'success') {
     // console.log('permissionsObj: ', permissionsObj)
@@ -23,17 +80,17 @@ export const handleLogin = async () => {
       const basicInfo = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
       const { id, name } = await basicInfo.json();
       const moreInfo = await fetch(`https://graph.facebook.com/${id}?fields=email,picture&access_token=${token}`);
-      const { email, picture } = await moreInfo.json();
+      const { email } = await moreInfo.json();
       // create or update user & store this user on state
-      store.dispatch(createOrUpdateUser({ id, name, picture, email }));
+      store.dispatch(createOrUpdateUser({ id, name, email, isApple: false }));
+      console.log('line 29')
       // save token and expiry to secure store
       try {
         await SecureStore.setItemAsync('accessToken', token);
         await SecureStore.setItemAsync('expires', expires.toString());
         await SecureStore.setItemAsync('facebookId', id);
-        const user = (await axios.get(`https://duette.herokuapp.com/api/user/facebookId/${id}`)).data;
-        // store.dispatch(fetchDuettes(user.id));
-        // TODO: may have to fix this bandaid solution below
+        console.log('line 35')
+        const user = (await axios.get(`https://duette.herokuapp.com/api/user/oAuthId/${id}`)).data;
         if (!store.getState().user.id) store.dispatch(setUser(user));
       } catch (e) {
         throw new Error('error setting access token, expires or facebookId keys on secure store: ', e);
@@ -47,15 +104,41 @@ export const handleLogin = async () => {
   }
 }
 
-export const handleLogout = async (displayUserInfo) => {
+export const handleAppleLogin = async () => {
+  const response = await Auth.loginWithApple();
+  let success;
+  if (response.authorizationCode) success = true;
+  if (success) {
+    // create/update user
+    // console.log('response: ', response)
+    const { email } = response;
+    const { familyName, givenName } = response.fullName;
+    store.dispatch(createOrUpdateUser({ oAuthId: response.user, name: `${givenName} ${familyName}`, email, isApple: true }));
+    console.log('oAuthId: ', response.user)
+    // set oAuthId on device
+    await SecureStore.setItemAsync('oAuthId', response.user);
+    console.log('item set!')
+  } else {
+    console.log('failure: ', response)
+  }
+}
+
+export const handleLogout = async (displayUserInfo, onFailure) => {
   try {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('expires');
-    await SecureStore.deleteItemAsync('facebookId');
-    store.dispatch(clearCurrentUser());
-    store.dispatch(toggleUserInfo(!displayUserInfo));
+    const res = await Auth.logoutWithFirebase();
+    if (res.success) {
+      await SecureStore.deleteItemAsync('oAuthId');
+      // await SecureStore.deleteItemAsync('accessToken');
+      // await SecureStore.deleteItemAsync('expires');
+      // await SecureStore.deleteItemAsync('facebookId');
+      store.dispatch(clearCurrentUser());
+      store.dispatch(toggleUserInfo(!displayUserInfo));
+    } else {
+      // logout failed
+      if (onFailure) onFailure();
+    }
   } catch (e) {
-    throw new Error('error deleting items from secure store: ', e);
+    throw new Error('error logging out: ', e);
   }
 };
 

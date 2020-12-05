@@ -1,13 +1,17 @@
 /* eslint-disable complexity */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View, Dimensions, StyleSheet, Image, Alert, Platform, ActivityIndicator } from 'react-native';
+import { findNodeHandle, Clipboard, ActionSheetIOS, Text, TouchableOpacity, View, Dimensions, StyleSheet, Image, Alert, Platform, ActivityIndicator } from 'react-native';
 import { Video } from 'expo-av';
+import { useActionSheet } from '@expo/react-native-action-sheet';
+import { Icon } from 'react-native-elements';
+import Toast from 'react-native-simple-toast';
 import { getAWSVideoUrl, getAWSThumbnailUrl } from '../constants/urls';
-import { deleteVideo } from '../redux/videos';
-import { setVideo } from '../redux/singleVideo';
+import { fetchVideos, deleteVideo } from '../redux/videos';
+import { updateVideo, setVideo } from '../redux/singleVideo';
 import { toggleUpgradeOverlay } from '../redux/upgradeOverlay';
 import buttonStyles from '../styles/button';
+import axios from 'axios';
 
 const VideoItem = (props) => {
 
@@ -26,9 +30,19 @@ const VideoItem = (props) => {
     setShowEditDetailsModal,
     loading,
     searchText,
+    deviceType,
+    userReference,
+    isPrivate,
   } = props;
 
   let screenWidth = Math.floor(Dimensions.get('window').width);
+
+  const [flagging, setFlagging] = useState(false);
+  const [flagButtonRef, setFlagButtonRef] = useState(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareButtonRef, setShareButtonRef] = useState(null);
+
+  const { showActionSheetWithOptions } = useActionSheet();
 
   const handlePlaybackStatusUpdate = (updateObj) => {
     if (updateObj.didJustFinish) setPreviewVid('')
@@ -67,6 +81,148 @@ const VideoItem = (props) => {
 
   const handleToggleUpgradeOverlay = () => {
     props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
+  };
+
+  const handleExitBlock = () => {
+    props.fetchVideos(searchText, props.user.id);
+    setFlagging(false);
+  };
+
+  const handleExitFlag = async () => {
+    setFlagging(false);
+    try {
+      await axios.post(`https://duette.herokuapp.com/api/flag/${id}`, { flaggingUserId: props.user.id, flaggedUserId: userId })
+    } catch (e) {
+      throw new Error('error in handleExitFlag: ', e)
+    }
+  }
+
+  const handleBlockUser = async () => {
+    try {
+      // TODO: change url below back to heroku
+      await axios.post('https://duette.herokuapp.com/api/user/block', { blockingUser: props.user.id, userToBlock: userId })
+      Alert.alert(
+        'User Blocked',
+        "You will no longer see this user's videos in search results.",
+        [
+          { text: "OK", onPress: () => handleExitBlock() },
+        ],
+        { cancelable: false }
+      );
+    } catch (e) {
+      Alert.alert(
+        'Error Blocking',
+        'We unfortunately were not able to block this user at this time. Please contact us at support@duette.app or try again later.',
+        [
+          { text: 'OK', onPress: () => setFlagging(false) },
+        ],
+        { cancelable: false }
+      );
+      throw new Error('Error blocking user: ', e);
+    }
+  };
+
+  const handleFlagInappropriateContent = () => {
+    return showActionSheetWithOptions(
+      {
+        options: ["Cancel", "Flag offensive content", "Block this user"],
+        destructiveButtonIndex: 2,
+        cancelButtonIndex: 0,
+        anchor: findNodeHandle(flagButtonRef)
+      },
+      async buttonIndex => {
+        setFlagging(true);
+        if (buttonIndex === 0) {
+          // cancel action
+          setFlagging(false);
+          console.log('cancelled!')
+        } else if (buttonIndex === 1) {
+          // flag objectionable content
+          // try {
+          // await axios.post(`https://duette.herokuapp.com/api/flag/${id}`, { flaggingUserId: props.user.id, flaggedUserId: userId })
+          Alert.alert(
+            'Content Flagged',
+            'Thank you for flagging this content. We will review it within 24 hours, and take appropriate action if it violates our community guidelines.',
+            [
+              { text: 'OK', onPress: () => handleExitFlag() },
+            ],
+            { cancelable: false }
+          );
+        } else if (buttonIndex === 2) {
+          // block user's video
+          Alert.alert(
+            'Are you sure?',
+            'This cannot be undone. If you block this user, you will no longer be able to search for or record along with any of their base tracks.',
+            [
+              { text: "Yes, I'm sure", onPress: () => handleBlockUser() },
+              { text: "Cancel", onPress: () => setFlagging(false) },
+            ],
+            { cancelable: false }
+          );
+        }
+      }
+    );
+  };
+
+  const handleShare = () => {
+    let options;
+    if (props.user.id === userId) options = ["Cancel", "Copy Base Track ID", isPrivate ? "Make Public" : "Make Private"];
+    else options = ["Cancel", "Copy Base Track ID"];
+    if (props.user.id === userId) {
+      return showActionSheetWithOptions(
+        {
+          options,
+          destructiveButtonIndex: 2,
+          cancelButtonIndex: 0,
+          anchor: findNodeHandle(shareButtonRef)
+        },
+        async buttonIndex => {
+          setSharing(true);
+          if (buttonIndex === 0) {
+            // cancel action
+            setSharing(false);
+          } else if (buttonIndex === 1) {
+            Clipboard.setString(String(userReference));
+            Toast.show('Base Track ID copied to clipboard!');
+            setSharing(false);
+          } else if (buttonIndex === 2) {
+            props.updateVideoDetails(props.user.id, id, { title, composer, performer, key: theKey, notes, isPrivate: isPrivate ? false : true }, searchText);
+            Alert.alert(
+              'Success',
+              isPrivate ? 'This Base Track is now public. It can be found by any user searching by title, composer, key or performer.' : 'This Base Track is now private. It can only be found by users searching by ID. You can copy and share this ID by selecting the "Share" icon.',
+              [
+                {
+                  text: "OK",
+                  onPress: () => setSharing(false),
+                  style: 'cancel'
+                },
+              ],
+              { cancelable: false }
+            );
+          }
+        }
+      );
+    } else {
+      return showActionSheetWithOptions(
+        {
+          options,
+          // destructiveButtonIndex: 2,
+          cancelButtonIndex: 0,
+          anchor: findNodeHandle(shareButtonRef)
+        },
+        async buttonIndex => {
+          setSharing(true);
+          if (buttonIndex === 0) {
+            // cancel action
+            setSharing(false);
+          } else if (buttonIndex === 1) {
+            Clipboard.setString(String(userReference));
+            Toast.show('Base Track ID copied to clipboard!');
+            setSharing(false);
+          }
+        }
+      );
+    }
   };
 
   return (
@@ -111,31 +267,6 @@ const VideoItem = (props) => {
               </View>
             )
         }
-        {/* <TouchableOpacity
-          onPress={handleToggleUpgradeOverlay}
-          style={{
-            width: 80,
-            backgroundColor: '#e43',
-            position: 'absolute',
-            top: -10,
-            right: 0,
-            borderTopRightRadius: 9,
-            borderBottomLeftRadius: 10,
-            // letterSpacing: 1,
-            // transform: [{ rotate: '45deg' }],
-          }}>
-          <Text
-            style={{
-              color: 'white',
-              textAlign: 'center',
-              lineHeight: 50,
-              fontSize: 20,
-              textTransform: 'uppercase',
-              fontWeight: 'bold',
-            }}>
-            pro
-            </Text>
-        </TouchableOpacity> */}
       </View>
       <Text
         style={{
@@ -201,35 +332,80 @@ const VideoItem = (props) => {
         }}>
           {loading.isLoading && loading.id === id ? 'Loading, please wait...' : 'Record Duette!'}
           {
-            loading.isLoading && loading.id === id &&
+            loading.isLoading && loading.id === id && Platform.OS === 'ios' &&
             <ActivityIndicator style={{ marginLeft: 20 }} />
           }
         </Text>
       </TouchableOpacity>
       {
-        props.user.id === userId &&
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-evenly',
-        }}>
-          <TouchableOpacity
-            onPress={handleDelete}>
-            <Text style={{
-              textAlign: 'center',
-              color: 'red',
-              fontSize: 16,
-            }}>Delete</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleEdit}>
-            <Text style={{
-              textAlign: 'center',
-              color: '#0047B9',
-              fontSize: 16,
-            }}>Edit Details</Text>
-          </TouchableOpacity>
-        </View>
+        props.user.id === userId ? (
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+          }}>
+            <TouchableOpacity
+              onPress={handleDelete}>
+              <Text style={{
+                textAlign: 'center',
+                color: 'red',
+                fontSize: 16,
+              }}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleEdit}>
+              <Text style={{
+                textAlign: 'center',
+                color: '#0047B9',
+                fontSize: 16,
+              }}>Edit Details</Text>
+            </TouchableOpacity>
+            {/* <Icon name="reload-outline" size={30} color="black" /> */}
+          </View>
+        ) : (
+            <TouchableOpacity
+              onPress={handleFlagInappropriateContent}
+              // onPress={Platform.OS === 'ios' ? handleFlagInappropriateContentIos : handleFlagInappropriateContentAndroid}
+              disabled={flagging}
+              ref={ref => setFlagButtonRef(ref)}
+              style={{
+                width: '70%',
+                // height: 24,
+                alignSelf: 'center',
+                // alignItems: 'center',
+                // justifyContent: 'flex-end',
+                // backgroundColor: 'gray',
+                // marginRight: 10,
+                // marginBottom: 30,
+                // borderRadius: 50,
+              }}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: '#0047B9',
+                  fontSize: 16,
+                }}
+              >{flagging ? 'Flagging...' : 'Flag inappropriate content'}</Text>
+            </TouchableOpacity>
+          )
       }
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          right: 10,
+        }}>
+        <Icon
+          onPress={handleShare}
+          disabled={sharing}
+          ref={ref => setShareButtonRef(ref)}
+          name="share"
+          type="material"
+          color="black"
+          size={deviceType === 2 ? 36 : 26}
+          underlayColor="white"
+          iconStyle={{ backgroundColor: 'white' }}
+        />
+      </View>
     </View >
   )
 };
@@ -256,10 +432,11 @@ const styles = StyleSheet.create({
   details: {
     fontSize: 20,
     alignSelf: 'center',
+    textAlign: 'center',
     fontFamily: 'Gill Sans',
     fontWeight: '100',
     margin: 1.5,
-    color: 'black'
+    color: 'black',
   },
   overlay: {
     alignItems: 'center',
@@ -318,7 +495,9 @@ const mapDispatch = dispatch => {
   return {
     deleteVideo: (userId, videoId, searchText) => dispatch(deleteVideo(userId, videoId, searchText)),
     setVideo: id => dispatch(setVideo(id)),
+    fetchVideos: (text, userId) => dispatch(fetchVideos(text, userId)),
     toggleUpgradeOverlay: bool => dispatch(toggleUpgradeOverlay(bool)),
+    updateVideoDetails: (userId, videoId, newDetails, text) => dispatch(updateVideo(userId, videoId, newDetails, text)),
   }
 };
 

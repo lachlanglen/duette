@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, StyleSheet, Text, View, SafeAreaView, FlatList, Platform, Dimensions } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, Text, View, SafeAreaView, FlatList, Platform, Dimensions } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { connect } from 'react-redux';
 import { setVideo } from '../redux/singleVideo'
 import HeadphoneDetection from 'react-native-headphone-detection';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import RecordDuetteModalIos from '../components/ios/RecordDuetteModal';
-// import RecordDuetteModalAndroid from '../components/android/RecordDuetteModal';
+import RecordDuetteModalAndroid from '../components/android/RecordDuetteModal';
 // import Constants from 'expo-constants';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as FileSystem from 'expo-file-system';
@@ -17,8 +18,10 @@ import VideoItem from '../components/VideoItem';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EditDetailsModal from '../components/EditDetailsModal';
 import { getAWSVideoUrl } from '../constants/urls';
+import { deleteLocalFile } from '../services/utils';
 import { toggleUserInfo } from '../redux/userInfo';
-import WelcomeFlow from '../components/WelcomeFlow/WelcomeFlow';
+import WelcomeModal from '../components/WelcomeFlow/WelcomeModal';
+import RequestBaseTrackModal from '../components/RequestBaseTrackModal';
 
 const DuetteScreen = (props) => {
 
@@ -26,6 +29,7 @@ const DuetteScreen = (props) => {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [showRecordDuetteModal, setShowRecordDuetteModal] = useState(false);
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
+  const [showRequestBaseTrackModal, setShowRequestBaseTrackModal] = useState(false);
   const [previewVid, setPreviewVid] = useState('');
   const [searchText, setSearchText] = useState('');
   const [screenOrientation, setScreenOrientation] = useState('');
@@ -58,6 +62,11 @@ const DuetteScreen = (props) => {
     getDeviceType();
   });
 
+  const exitPermissions = () => {
+    deleteLocalFile(baseTrackUri);
+    setLoading({ isLoading: false, id: '' });
+  }
+
   const getPermissionsAndRecord = async () => {
     const perms = await Permissions.getAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING);
     if (perms.permissions.audioRecording.granted) {
@@ -71,7 +80,7 @@ const DuetteScreen = (props) => {
           `Oops...`,
           'Duette needs audio permissions in order to function correctly. Please enable audio permissions for Duette in your device settings.',
           [
-            { text: 'OK', onPress: () => { } },
+            { text: 'OK', onPress: () => exitPermissions() },
           ],
           { cancelable: false }
         )
@@ -80,18 +89,22 @@ const DuetteScreen = (props) => {
     }
     if (perms.permissions.camera.granted) {
       setHasCameraPermission(true);
+      setLoading({ isLoading: false, id: '' });
+      activateKeepAwake();
       setShowRecordDuetteModal(true);
     } else {
       const { status } = await Permissions.askAsync(Permissions.CAMERA);
       if (status === 'granted') {
         setHasCameraPermission(true);
+        setLoading({ isLoading: false, id: '' });
+        activateKeepAwake();
         setShowRecordDuetteModal(true);
       } else {
         Alert.alert(
           `Oops...`,
           'Duette needs camera permissions in order to function correctly. Please enable camera permissions for Duette in your device settings.',
           [
-            { text: 'OK', onPress: () => handleRefresh() },
+            { text: 'OK', onPress: () => exitPermissions() },
           ],
           { cancelable: false }
         )
@@ -102,9 +115,10 @@ const DuetteScreen = (props) => {
 
   const loadVideo = async (id) => {
     // TODO: show error if not enough storage available?
+    // console.log('hi in loadVideo')
     const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
     const freeDiskStorageMb = freeDiskStorage / 1000000;
-    // console.log('freeDiskStorageMb: ', freeDiskStorageMb)
+    console.log('freeDiskStorageMb: ', freeDiskStorageMb)
     if (freeDiskStorageMb < 100) {
       Alert.alert(
         'Not enough space available',
@@ -119,16 +133,20 @@ const DuetteScreen = (props) => {
       if (previewVid) setPreviewVid('');
       props.setVideo(id);
       try {
-        if (Platform.OS === 'ios') {
-          const { uri } = await FileSystem.downloadAsync(
-            getAWSVideoUrl(id),
-            FileSystem.documentDirectory + `${id}.mov`
-          );
-          setBaseTrackUri(uri);
-          setLoading({ isLoading: false, id: '' });
-        }
+        // if (Platform.OS === 'ios') {
+        console.log('line 124')
+        console.log('videoUrl: ', getAWSVideoUrl(id))
+        const { uri } = await FileSystem.downloadAsync(
+          getAWSVideoUrl(id),
+          FileSystem.documentDirectory + `${id}.mov`
+        );
+        console.log('uri: ', uri)
+        // console.log('line 129')
+        setBaseTrackUri(uri);
+        // }
         getPermissionsAndRecord();
       } catch (e) {
+        console.log('error in DuetteScreen: ', e)
         Alert.alert(
           'Oops...',
           `We encountered a problem downloading this base track. Please check your internet connection and try again.`,
@@ -168,7 +186,8 @@ const DuetteScreen = (props) => {
   };
 
   const setFilteredVideos = text => {
-    props.fetchVideos(text);
+    // console.log('props.user.id in setFilteredVideos: ', props.user.id)
+    props.fetchVideos(text, props.user.id);
   };
 
   const handleSearch = text => {
@@ -180,12 +199,32 @@ const DuetteScreen = (props) => {
     props.toggleUserInfo(false);
   };
 
+  const RequestComponent = ({ unprompted }) => {
+    return (
+      <View style={{
+        marginTop: unprompted ? 30 : 0,
+      }}>
+        <Text style={styles.blackText}>Don't see what you're looking for?</Text>
+        <TouchableOpacity
+          onPress={() => setShowRequestBaseTrackModal(true)}
+        >
+          <Text
+            style={{
+              ...styles.blueText,
+              margin: 0,
+              fontStyle: 'italic',
+            }}>Request a Base Track</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
-    !props.user.isSubscribed ? (
+    !props.user.id ? (
       !props.dataLoaded ? (
         <LoadingSpinner />
       ) : (
-          <WelcomeFlow />
+          <WelcomeModal />
         )
     ) : (
         showEditDetailsModal && props.selectedVideo.id ? (
@@ -197,6 +236,7 @@ const DuetteScreen = (props) => {
             origSongKey={props.selectedVideo.key}
             origPerformer={props.selectedVideo.performer}
             origNotes={props.selectedVideo.notes}
+            origIsPrivate={props.selectedVideo.isPrivate}
             setSearchText={setSearchText}
             searchText={searchText}
           />
@@ -205,7 +245,7 @@ const DuetteScreen = (props) => {
               // RECORD A DUETTE
               <View
                 style={styles.container}>
-                {/* {
+                {
                   Platform.OS === 'android' ? (
                     <RecordDuetteModalAndroid
                       setShowRecordDuetteModal={setShowRecordDuetteModal}
@@ -213,91 +253,113 @@ const DuetteScreen = (props) => {
                       baseTrackUri={baseTrackUri}
                       setSearchText={setSearchText}
                     />
-                  ) : ( */}
-                <RecordDuetteModalIos
-                  setShowRecordDuetteModal={setShowRecordDuetteModal}
-                  baseTrackUri={baseTrackUri}
-                  setSearchText={setSearchText}
-                />
-                {/* )
-                } */}
+                  ) : (
+                      <RecordDuetteModalIos
+                        setShowRecordDuetteModal={setShowRecordDuetteModal}
+                        baseTrackUri={baseTrackUri}
+                        setSearchText={setSearchText}
+                      />
+                    )
+                }
               </View>
             ) : (
-                // VIEW VIDEOS
-                <View
-                  style={styles.listContainer}>
-                  <SafeAreaView
-                    onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
-                    style={styles.listContainer}
-                  >
-                    <Searchbar
-                      placeholder="Try 'No Such Thing'"
-                      onChangeText={handleSearch}
-                      style={styles.searchbar}
-                    />
-                    {
-                      !searchText ? (
-                        <View
-                          onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
-                        >
-                          <Text style={styles.text}>
-                            {"Search for a base track by title, performer, composer/songwriter or key!"}
-                          </Text>
-                        </View>
-                      ) : (
-                          // SEARCH YIELDED NO RESULTS
-                          props.videos.length > 0 ? (
+                showRequestBaseTrackModal ? (
+                  <RequestBaseTrackModal
+                    setShowRequestBaseTrackModal={setShowRequestBaseTrackModal}
+                  />
+                ) : (
+                    // VIEW VIDEOS
+                    <View
+                      style={styles.listContainer}>
+                      <SafeAreaView
+                        onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
+                        style={styles.listContainer}
+                      >
+                        <Searchbar
+                          placeholder="Try 'No Such Thing'"
+                          onChangeText={handleSearch}
+                          style={styles.searchbar}
+                          value={searchText}
+                        />
+                        {
+                          !searchText ? (
                             <View
-                              style={{ flex: 1, paddingBottom: 10 }}>
-                              <FlatList
-                                data={props.videos}
-                                renderItem={({ item }) => (
-                                  <VideoItem
-                                    id={item.id}
-                                    title={item.title}
-                                    performer={item.performer}
-                                    composer={item.composer}
-                                    theKey={item.key}
-                                    notes={item.notes}
-                                    userId={item.userId}
-                                    previewVid={previewVid}
-                                    setPreviewVid={setPreviewVid}
-                                    handlePreview={handlePreview}
-                                    handleUse={handleUse}
-                                    setShowEditDetailsModal={setShowEditDetailsModal}
-                                    showEditDetailsModal={showEditDetailsModal}
-                                    loading={loading}
-                                    searchText={searchText}
-                                  />
-                                )}
-                                keyExtractor={item => item.id}
-                                viewabilityConfig={{}}
+                              onTouchStart={props.displayUserInfo ? handleHideUserInfo : () => { }}
+                            >
+                              <Text style={styles.blueText}>
+                                {"Search for a base track by title, performer, composer/songwriter, key or ID!"}
+                              </Text>
+                              <RequestComponent
+                                unprompted={true}
                               />
                             </View>
                           ) : (
-                              <View>
-                                <Text style={styles.text}>
-                                  No base tracks found matching "{searchText}" 😿
-                              </Text>
-                              </View>
+                              props.videos.length > 0 ? (
+                                // SEARCH YIELDED RESULTS
+                                <View
+                                  style={{ flex: 1, paddingBottom: 10 }}>
+                                  <FlatList
+                                    data={props.videos}
+                                    renderItem={({ item }) => (
+                                      <VideoItem
+                                        id={item.id}
+                                        title={item.title}
+                                        performer={item.performer}
+                                        composer={item.composer}
+                                        theKey={item.key}
+                                        notes={item.notes}
+                                        userId={item.userId}
+                                        userReference={item.userReference}
+                                        isPrivate={item.isPrivate}
+                                        previewVid={previewVid}
+                                        setPreviewVid={setPreviewVid}
+                                        handlePreview={handlePreview}
+                                        handleUse={handleUse}
+                                        setShowEditDetailsModal={setShowEditDetailsModal}
+                                        showEditDetailsModal={showEditDetailsModal}
+                                        loading={loading}
+                                        searchText={searchText}
+                                        deviceType={deviceType}
+                                      />
+                                    )}
+                                    keyExtractor={item => item.id}
+                                    viewabilityConfig={{}}
+                                    ListFooterComponent={RequestComponent}
+                                    ListFooterComponentStyle={{ paddingBottom: 20 }}
+                                  />
+                                </View>
+                              ) : (
+                                  // SEARCH YIELDED NO RESULTS
+
+                                  // showRequestBaseTrackModal ? (
+                                  // <RequestBaseTrackModal
+                                  //   setShowRequestBaseTrackModal={setShowRequestBaseTrackModal}
+                                  // />
+                                  // ) : (
+                                  <View>
+                                    <Text style={{
+                                      ...styles.blueText,
+                                      paddingBottom: 50,
+                                    }}>
+                                      No base tracks found matching "{searchText}" 😿
+                                </Text>
+                                    <RequestComponent />
+                                  </View>
+                                  // )
+                                )
                             )
-                        )
-                    }
-                  </SafeAreaView>
-                  {
-                    props.displayUserInfo &&
-                    <UserInfoMenu />
-                  }
-                </View>
+                        }
+                      </SafeAreaView>
+                      {
+                        props.displayUserInfo &&
+                        <UserInfoMenu />
+                      }
+                    </View >
+                  )
               )
           )
       )
   )
-  // return (
-  //   <View>
-  //     <Text>Hi in DuetteScreen</Text>
-  //   </View>
-  // )
 }
 
 const styles = StyleSheet.create({
@@ -314,13 +376,22 @@ const styles = StyleSheet.create({
     borderBottomColor: 'grey',
     borderBottomWidth: 2,
   },
-  text: {
-    marginTop: 10,
+  blueText: {
+    margin: 10,
     alignSelf: 'center',
     textAlign: 'center',
     fontSize: 20,
     fontWeight: 'bold',
     color: '#0047b9',
+  },
+  blackText: {
+    margin: 10,
+    alignSelf: 'center',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
   },
 });
 
@@ -339,7 +410,7 @@ const mapState = ({ videos, selectedVideo, displayUserInfo, user, dataLoaded, er
 const mapDispatch = dispatch => {
   return {
     setVideo: id => dispatch(setVideo(id)),
-    fetchVideos: (text) => dispatch(fetchVideos(text)),
+    fetchVideos: (text, userId) => dispatch(fetchVideos(text, userId)),
     toggleUserInfo: bool => dispatch(toggleUserInfo(bool)),
   }
 }

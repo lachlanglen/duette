@@ -19,12 +19,15 @@ export const videosReducer = (state = {}, action) => {
   }
 }
 
-export const fetchVideos = (text) => {
+export const fetchVideos = (text, userId) => {
+  // console.log('text, userId in fetchVideos: ', text, userId)
   return dispatch => {
-    axios.get(`https://duette.herokuapp.com/api/video${text ? `/?val=${text}` : ''}`)
+    // TODO: change below url back to heroku
+    // 192.168.0.6:5000
+    axios.get(`https://duette.herokuapp.com/api/video/withUserId/${userId}${text ? `/?val=${text}` : ''}`)
       .then(vids => dispatch(setVideos(vids.data)))
       .catch(e => {
-        throw new Error('error in setVideos thunk: ', e)
+        throw new Error('error in fetchVideos thunk: ', e)
       })
   };
 };
@@ -46,9 +49,9 @@ export const deleteVideo = (userId, videoId, searchText) => {
       .then(() => axios.delete(`https://duette.herokuapp.com/api/aws/${videoId}thumbnail.mov`))
       .then(() => {
         if (searchText) {
-          dispatch(fetchVideos(searchText));
+          dispatch(fetchVideos(searchText, userId));
         } else {
-          dispatch(fetchVideos());
+          dispatch(fetchVideos('', userId));
         }
       })
       .catch(e => {

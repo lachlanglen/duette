@@ -1,50 +1,37 @@
 import React, { createRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Platform, Text, View, StyleSheet, Alert, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { Input } from 'react-native-elements';
+import CheckBox from 'react-native-check-box';
 import { clearVideo } from '../redux/singleVideo';
 import buttonStyles from '../styles/button';
 
-const Form = (props) => {
+const RequestForm = (props) => {
 
   const {
+    handleExit,
+    handleSave,
     title,
     setTitle,
     composer,
     setComposer,
     songKey,
     setSongKey,
-    performer,
     notes,
     setNotes,
-    setPerformer,
-    setShowDetailsModal,
-    setShowEditDetailsModal,
-    handleSave,
-    handleUpdate,
-    type
+    notifyMe,
+    setNotifyMe,
+    handlePermissionsWarn,
+    saving,
   } = props;
 
-  const handleExitEdit = () => {
-    props.clearVideo();
-    setShowEditDetailsModal(false);
-  };
-
-  const handleBack = () => {
-    if (type === 'initial') {
-      setShowDetailsModal(false);
-    } else {
-      handleConfirmExitEdit();
-    }
-  };
-
-  const handleConfirmExitEdit = () => {
+  const handleConfirmExit = () => {
     Alert.alert(
       'Are you sure?',
-      "If you go back now your changes won't be saved.",
+      "If you go back now your request won't be saved.",
       [
-        { text: 'Yes, go back', onPress: () => handleExitEdit() },
-        { text: 'Keep editing', onPress: () => { } }
+        { text: 'Yes, go back', onPress: () => handleExit() },
+        { text: 'Cancel', style: 'cancel', onPress: () => { } }
       ],
       { cancelable: false }
     );
@@ -86,7 +73,7 @@ const Form = (props) => {
     } else {
       Alert.alert(
         'Too long',
-        "'Written by' must be 20 characters or less",
+        "'Written by' must be 30 characters or less",
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -96,27 +83,12 @@ const Form = (props) => {
   };
 
   const handleSetSongKey = val => {
-    if (val.length <= 20) {
+    if (val.length <= 30) {
       setSongKey(val);
     } else {
       Alert.alert(
         'Too long',
-        "Key must be 10 characters or less",
-        [
-          { text: 'OK', onPress: () => { } },
-        ],
-        { cancelable: false }
-      );
-    }
-  };
-
-  const handleSetPerformer = val => {
-    if (val.length <= 50) {
-      setPerformer(val);
-    } else {
-      Alert.alert(
-        'Too long',
-        "Performer must be 50 characters or less",
+        "Key must be 30 characters or less",
         [
           { text: 'OK', onPress: () => { } },
         ],
@@ -127,7 +99,9 @@ const Form = (props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titleText}>{type === 'initial' ? 'Please enter the following details:' : 'Update details:'}</Text>
+      {/* <StatusBar hidden /> */}
+      <Text style={styles.titleText}>Request a Base Track</Text>
+      {/* <Text style={styles.subTitleText}>Please enter the following details:</Text> */}
       <Input
         labelStyle={styles.labelText}
         containerStyle={styles.inputField}
@@ -138,47 +112,57 @@ const Form = (props) => {
       <Input
         labelStyle={styles.labelText}
         containerStyle={styles.inputField}
-        onChangeText={val => handleSetPerformer(val)}
-        value={performer}
-        label="Performer (required)"
-        placeholder="Enter your name here!" />
-      <Input
-        labelStyle={styles.labelText}
-        containerStyle={styles.inputField}
         onChangeText={val => handleSetComposer(val)}
         value={composer}
-        label="Who wrote it? (optional)"
+        label="Who wrote it? (required)"
         placeholder="e.g. 'Offenbach' or 'Lizzo'" />
       <Input
         labelStyle={styles.labelText}
         containerStyle={styles.inputField}
         onChangeText={val => handleSetSongKey(val)}
         value={songKey}
-        label="Key (optional)"
-        placeholder="e.g. B-flat major" />
+        label="Preferred key (required)"
+        placeholder="e.g. 'B major', 'high voice' or 'original'" />
       <Input
         labelStyle={styles.labelText}
-        containerStyle={styles.inputField}
+        containerStyle={{
+          ...styles.inputField,
+          marginBottom: 0,
+        }}
         onChangeText={val => handleSetNotes(val)}
         value={notes}
-        label="Want to add any notes about this track for Duetters? (optional)"
-        placeholder={`e.g. "4 measures intro"`} />
+        label="Want to add any notes about this request? (optional)"
+        placeholder={`e.g. 'Quarter note = 120-ish'`} />
+      <CheckBox
+        style={{ flex: 1, paddingLeft: 10, paddingRight: 60 }}
+        onClick={() => setNotifyMe(!notifyMe)}
+        isChecked={notifyMe}
+        leftText={"Notify me when someone records this Base Track"}
+        leftTextStyle={{
+          ...styles.labelText,
+          fontWeight: 'bold',
+        }}
+        checkBoxColor='#187795'
+        checkedCheckBoxColor='#187795'
+      />
       <TouchableOpacity
-        onPress={type === 'initial' ? handleSave : handleUpdate}
-        disabled={!title || !performer}
+        onPress={notifyMe ? handlePermissionsWarn : handleSave}
+        disabled={!title || !composer || !songKey || saving}
         style={{
           ...buttonStyles.regularButton,
           height: 50,
           width: '40%',
-          backgroundColor: !title || !performer ? 'grey' : '#0047B9',
+          backgroundColor: !title || !composer || !songKey || saving ? 'grey' : '#0047B9',
           marginBottom: 14,
+          marginTop: 30,
         }}>
         <Text style={{
           ...buttonStyles.regularButtonText,
-        }}>{type === 'initial' ? 'Submit!' : 'Update!'}</Text>
+        }}>Submit!</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={handleBack}
+        onPress={handleConfirmExit}
+        disabled={saving}
         style={{
           ...buttonStyles.regularButton,
           width: '40%',
@@ -194,15 +178,22 @@ const Form = (props) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 80,
+    marginTop: 50,
     marginHorizontal: 20,
   },
   titleText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  subTitleText: {
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#0047B9',
-    marginBottom: 40
+    marginBottom: 30
   },
   labelText: {
     color: '#187795',
@@ -226,17 +217,4 @@ const styles = StyleSheet.create({
   }
 })
 
-const mapState = ({ user, selectedVideo }) => {
-  return {
-    user,
-    selectedVideo,
-  }
-};
-
-const mapDispatch = dispatch => {
-  return {
-    clearVideo: () => dispatch(clearVideo()),
-  }
-}
-
-export default connect(mapState, mapDispatch)(Form);
+export default RequestForm;

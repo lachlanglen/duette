@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
-import { Text, View, SafeAreaView, FlatList, StyleSheet, Dimensions } from 'react-native';
+import { connect, useDispatch } from 'react-redux';
+import { Text, View, SafeAreaView, FlatList, StyleSheet, Dimensions, RefreshControl } from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import MyDuettesItem from './MyDuettesItem';
 import { fetchDuettes } from '../redux/duettes';
@@ -11,6 +11,9 @@ const MyDuettes = (props) => {
   const [showPreview, setShowPreview] = useState(false);
   const [screenOrientation, setScreenOrientation] = useState('');
   const [duettesLoaded, setDuettesLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const dispatch = useDispatch();
 
   let screenWidth = Math.round(Dimensions.get('window').width);
   let screenHeight = Math.round(Dimensions.get('window').height);
@@ -41,11 +44,20 @@ const MyDuettes = (props) => {
     props.toggleUpgradeOverlay(!props.displayUpgradeOverlay);
   };
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    dispatch(fetchDuettes(props.user.id, () => setRefreshing(false), () => setRefreshing(false)))
+  }, []);
+
   return (
     <SafeAreaView
       style={styles.container}>
       {
         props.userDuettes.length > 0 ? (
+          // <ScrollView
+          //   refreshControl={
+          //     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          //   }>
           <View style={{ flex: 1, paddingBottom: 10 }}>
             <Text style={{
               color: '#0047B9',
@@ -57,11 +69,15 @@ const MyDuettes = (props) => {
             }}>Duettes available for 30 days</Text>
             <FlatList
               data={props.userDuettes}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
               renderItem={({ item }) => (
                 <MyDuettesItem
                   videoId={item.videoId}
                   videoTitle={item.video ? item.video.title : ''}
                   duetteId={item.id}
+                  userId={item.userId}
                   selectedDuette={selectedDuette}
                   setSelectedDuette={setSelectedDuette}
                   screenOrientation={screenOrientation}
@@ -76,6 +92,7 @@ const MyDuettes = (props) => {
               viewabilityConfig={{}}
             />
           </View>
+          // </ScrollView>
         ) : (
             !duettesLoaded ? (
               <View>

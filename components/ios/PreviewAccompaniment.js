@@ -7,9 +7,10 @@ import buttonStyles from '../../styles/button';
 const PreviewAccompaniment = (props) => {
   const {
     dataUri,
-    handleSave,
+    // handleSave,
     handleRefresh,
-    deviceType
+    deviceType,
+    setShowDetailsModal,
   } = props;
 
   let screenWidth = Math.floor(Dimensions.get('window').width);
@@ -31,7 +32,9 @@ const PreviewAccompaniment = (props) => {
       ],
       { cancelable: false }
     );
-  }
+  };
+
+  console.log('dataUri: ', dataUri)
 
   return (
     <Modal
@@ -83,7 +86,7 @@ const PreviewAccompaniment = (props) => {
               marginHorizontal: screenOrientation === 'PORTRAIT' ? 15 : 0,
               marginTop: deviceType === 2 ? 30 : 0,
             }}
-            onPress={handleSave}>
+            onPress={() => setShowDetailsModal(true)}>
             <Text style={buttonStyles.regularButtonText}
             >Save
             </Text>

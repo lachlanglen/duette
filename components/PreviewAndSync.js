@@ -407,7 +407,7 @@ const PreviewAndSync = (props) => {
                   onPress={handleRestart}
                   style={styles.problemContainer}
                 >
-                  <Text style={{ fontSize: 16, color: 'red' }}>Having a problem? Touch here to refresh.</Text>
+                  <Text style={{ fontSize: 14, color: 'red' }}>Having a problem? Touch here to refresh.</Text>
                 </TouchableOpacity>
               }
             </View>
