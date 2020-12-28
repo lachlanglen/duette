@@ -56,12 +56,14 @@ const BottomTabNavigator = (props) => {
 
 function getHeaderTitle(route, user) {
   const routeName = route.state ?.routes[route.state.index] ?.name ?? INITIAL_ROUTE_NAME;
-
-  switch (routeName) {
-    case 'Accompaniment':
-      return `Welcome${user.name ? `, ${user.name.split(' ')[0]}` : ' to Duette'}!`;
-    case 'Duette':
-      return `${user.name ? 'Choose a base track' : 'Welcome to Duette!'}`;
+  if (!user.name) return '';
+  else {
+    switch (routeName) {
+      case 'Accompaniment':
+        return `Welcome${!user.name.includes('null') ? `, ${user.name.split(' ')[0]}` : ' to Duette'}!`;
+      case 'Duette':
+        return `${user.name ? 'Choose a base track' : 'Welcome to Duette!'}`;
+    }
   }
 };
 

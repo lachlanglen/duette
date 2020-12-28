@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Image, Text, View, Modal, Button, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
 import Form from './DetailsForm';
@@ -75,24 +74,29 @@ const EditDetailsModal = (props) => {
       <Modal
         supportedOrientations={['portrait', 'landscape', 'landscape-right']}
       >
-        <KeyboardAwareScrollView>
-          <Form
-            handleUpdate={handleUpdate}
-            title={title}
-            setTitle={setTitle}
-            composer={composer}
-            setComposer={setComposer}
-            songKey={songKey}
-            setSongKey={setSongKey}
-            performer={performer}
-            setPerformer={setPerformer}
-            notes={notes}
-            setNotes={setNotes}
-            makePrivate={makePrivate}
-            setMakePrivate={setMakePrivate}
-            setShowEditDetailsModal={setShowEditDetailsModal}
-            type="update" />
-        </KeyboardAwareScrollView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == "ios" ? "padding" : "height"}
+        // style={styles.container}
+        >
+          <ScrollView>
+            <Form
+              handleUpdate={handleUpdate}
+              title={title}
+              setTitle={setTitle}
+              composer={composer}
+              setComposer={setComposer}
+              songKey={songKey}
+              setSongKey={setSongKey}
+              performer={performer}
+              setPerformer={setPerformer}
+              notes={notes}
+              setNotes={setNotes}
+              makePrivate={makePrivate}
+              setMakePrivate={setMakePrivate}
+              setShowEditDetailsModal={setShowEditDetailsModal}
+              type="update" />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View >
   )

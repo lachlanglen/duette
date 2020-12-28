@@ -138,7 +138,7 @@ const Form = (props) => {
       ],
       { cancelable: false }
     );
-  }
+  };
 
   return (
     <View style={deviceType === 2 ? {

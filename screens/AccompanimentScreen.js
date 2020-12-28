@@ -38,7 +38,7 @@ const AccompanimentScreen = (props) => {
   const [preview, setPreview] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [screenOrientation, setScreenOrientation] = useState('');
-  const [secs, setSecs] = useState(540);  // start with 9 mins remaining
+  const [secs, setSecs] = useState(420);  // start with 7 mins remaining
   const [countdown, setCountdown] = useState(3);  // start with 3 secs remaining
   const [countdownActive, setCountdownActive] = useState(false);
   const [timerActive, setTimerActive] = useState(false);
@@ -87,7 +87,7 @@ const AccompanimentScreen = (props) => {
     setDataUri('');
     setShowDetailsModal(false);
     setPreview(false);
-    setSecs(540);
+    setSecs(420);
     setCountdown(3);
   };
 
@@ -116,7 +116,7 @@ const AccompanimentScreen = (props) => {
     cameraRef.stopRecording();
     setRecording(false);
     setPreview(true);
-    setSecs(540);
+    setSecs(420);
   };
 
   const toggleRecord = () => {

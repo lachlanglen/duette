@@ -32,7 +32,9 @@ const PreviewAccompaniment = (props) => {
       ],
       { cancelable: false }
     );
-  }
+  };
+
+  console.log('dataUri: ', dataUri)
 
   return (
     <Modal

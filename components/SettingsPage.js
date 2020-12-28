@@ -49,59 +49,15 @@ const SettingsPage = (props) => {
     getDeviceType();
   }, []);
 
-  useEffect(() => {
-    if (updatedEmailSubmitted && props.error.errorRegistered) {
-      if (!props.error.isError) {
-        Alert.alert(
-          'Updated!',
-          "Your email has been successfully updated.",
-          [
-            { text: 'OK', onPress: () => handleEmailUpdateDone() },
-          ],
-          { cancelable: false }
-        );
-      } else {
-        Alert.alert(
-          'Oops...',
-          `${email} is already registered with another Duette account. Please use a different email address.`,
-          [
-            { text: 'OK', onPress: () => handleEmailUpdateDone() },
-          ],
-          { cancelable: false }
-        );
-      }
-    } else if (updatedNameSubmitted && props.error.errorRegistered) {
-      if (!props.error.isError) {
-        Alert.alert(
-          'Updated!',
-          "Your name has been successfully updated.",
-          [
-            { text: 'OK', onPress: () => handleNameUpdateDone() },
-          ],
-          { cancelable: false }
-        );
-      } else {
-        Alert.alert(
-          'Oops...',
-          `We could not update your name right now. Please try again later.`,
-          [
-            { text: 'OK', onPress: () => handleNameUpdateDone() },
-          ],
-          { cancelable: false }
-        );
-      }
-    }
-  });
-
   const handleEmailUpdateDone = () => {
     setUpdatedEmailSubmitted(false);
-    props.clearError();
+    // props.clearError();
     setEditEmail(false);
   };
 
   const handleNameUpdateDone = () => {
     setUpdatedNameSubmitted(false);
-    props.clearError();
+    // props.clearError();
     setEditName(false);
   };
 
@@ -144,13 +100,53 @@ const SettingsPage = (props) => {
   };
 
   const handleSaveEmail = () => {
+    const onSuccess = () => {
+      Alert.alert(
+        'Updated!',
+        "Your email has been successfully updated.",
+        [
+          { text: 'OK', onPress: () => handleEmailUpdateDone() },
+        ],
+        { cancelable: false }
+      );
+    };
+    const onEmailAlreadyExists = () => {
+      Alert.alert(
+        'Oops...',
+        `${email} is already registered with another Duette account. Please use a different email address.`,
+        [
+          { text: 'OK', onPress: () => handleEmailUpdateDone() },
+        ],
+        { cancelable: false }
+      );
+    }
     setUpdatedEmailSubmitted(true);
-    props.updateUser(props.user.id, { email });
+    props.updateUser(props.user.id, { email }, { onSuccess, onEmailAlreadyExists });
   };
 
   const handleSaveName = () => {
+    const onSuccess = () => {
+      Alert.alert(
+        'Updated!',
+        "Your name has been successfully updated.",
+        [
+          { text: 'OK', onPress: () => handleNameUpdateDone() },
+        ],
+        { cancelable: false }
+      );
+    }
+    const onFailure = () => {
+      Alert.alert(
+        'Oops...',
+        `We could not update your name right now. Please try again later.`,
+        [
+          { text: 'OK', onPress: () => handleNameUpdateDone() },
+        ],
+        { cancelable: false }
+      );
+    }
     setUpdatedNameSubmitted(true);
-    props.updateUser(props.user.id, { name });
+    props.updateUser(props.user.id, { name }, { onSuccess, onFailure });
   };
 
   const handleEmailChange = (val) => {
@@ -286,7 +282,7 @@ const SettingsPage = (props) => {
             <View style={styles.lineContainer}>
               {
                 !editName ? (
-                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{props.user.name}</Text>
+                  <Text style={{ ...styles.tierText, marginBottom: 0 }}>{!props.user.name.includes('null') ? props.user.name : 'None provided'}</Text>
                 ) : (
                     <Input
                       // labelStyle={{ marginLeft: 30 }}
@@ -302,7 +298,7 @@ const SettingsPage = (props) => {
                 <TouchableOpacity
                   disabled={updatedNameSubmitted}
                   onPress={handleEditName}>
-                  <Text style={styles.editText}>Edit</Text>
+                  <Text style={styles.editText}>{!props.user.name.includes('null') ? 'Edit' : 'Add'}</Text>
                 </TouchableOpacity>
               }
             </View>
@@ -344,7 +340,7 @@ const SettingsPage = (props) => {
                 <TouchableOpacity
                   disabled={updatedEmailSubmitted}
                   onPress={handleEditEmail}>
-                  <Text style={styles.editText}>Edit</Text>
+                  <Text style={styles.editText}>{props.user.email ? 'Edit' : 'Add'}</Text>
                 </TouchableOpacity>
               }
             </View>
@@ -506,7 +502,7 @@ const mapState = ({ user, displayUpgradeOverlay, error }) => {
 
 const mapDispatch = dispatch => {
   return {
-    updateUser: (id, body) => dispatch(updateUser(id, body)),
+    updateUser: (id, body, extraInfo) => dispatch(updateUser(id, body, extraInfo)),
     toggleUpgradeOverlay: bool => dispatch(toggleUpgradeOverlay(bool)),
     clearError: () => dispatch(clearError()),
   }

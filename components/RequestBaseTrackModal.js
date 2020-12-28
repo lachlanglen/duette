@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { SafeAreaView, KeyboardAvoidingView, Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import Toast from 'react-native-simple-toast';
 import * as Notifications from "expo-notifications";
@@ -111,24 +110,29 @@ const RequestBaseTrackModal = (props) => {
       <Modal
         supportedOrientations={['portrait', 'landscape', 'landscape-right']}
       >
-        <KeyboardAwareScrollView>
-          <RequestForm
-            handleExit={handleExit}
-            handleSave={handleSave}
-            title={title}
-            setTitle={setTitle}
-            composer={composer}
-            setComposer={setComposer}
-            songKey={songKey}
-            setSongKey={setSongKey}
-            notes={notes}
-            setNotes={setNotes}
-            notifyMe={notifyMe}
-            setNotifyMe={setNotifyMe}
-            handlePermissionsWarn={handlePermissionsWarn}
-            saving={saving}
-          />
-        </KeyboardAwareScrollView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS == "ios" ? "padding" : "height"}
+        // style={styles.container}
+        >
+          <ScrollView>
+            <RequestForm
+              handleExit={handleExit}
+              handleSave={handleSave}
+              title={title}
+              setTitle={setTitle}
+              composer={composer}
+              setComposer={setComposer}
+              songKey={songKey}
+              setSongKey={setSongKey}
+              notes={notes}
+              setNotes={setNotes}
+              notifyMe={notifyMe}
+              setNotifyMe={setNotifyMe}
+              handlePermissionsWarn={handlePermissionsWarn}
+              saving={saving}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View >
   )

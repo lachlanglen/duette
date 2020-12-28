@@ -29,8 +29,7 @@ export const userReducer = (state = {}, action) => {
   }
 };
 
-export const createOrUpdateUser = body => {
-  const { oAuthId, name, email, isApple } = body;
+export const createOrUpdateUser = ({ oAuthId, name, email, isApple, onSuccess, onFailure }) => {
   return dispatch => {
     axios.post('https://duette.herokuapp.com/api/user',
       {
@@ -41,28 +40,32 @@ export const createOrUpdateUser = body => {
         isApple,
       })
       .then(user => {
-        dispatch(setUser(user.data))
+        dispatch(setUser(user.data));
+        if (onSuccess) onSuccess()
       })
       .catch(e => {
         console.log('error in setUser thunk: ', e)
+        if (onFailure) onFailure();
         throw new Error('error in setUser thunk: ', e)
       });
   };
 };
 
-export const updateUser = (userId, body) => {
-  console.log('body: ', body)
+export const updateUser = (userId, body, { onSuccess, onFailure, onEmailAlreadyExists }) => {
   return dispatch => {
     // TODO: change below back to duette.herokuapp.com
     // axios.put(`http://192.168.0.6:5000/api/user/${userId}`, body)
     axios.put(`https://duette.herokuapp.com/api/user/${userId}`, body)
       .then(updated => {
-        dispatch(setErrorRegistered());
-        dispatch(setUser(updated.data))
+        // dispatch(setErrorRegistered());
+        dispatch(setUser(updated.data));
+        if (onSuccess) onSuccess();
       })
       .catch(e => {
-        dispatch(setError(e));
-        console.log('error in updateUser thunk: ', e)
+        // dispatch(setError(e));
+        console.log('error in updateUser thunk: ', e);
+        if (onEmailAlreadyExists) onEmailAlreadyExists();
+        else if (onFailure) onFailure();
       })
   }
 }

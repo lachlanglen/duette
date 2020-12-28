@@ -68,20 +68,20 @@ const SavingVideo = (props) => {
     });
     Notifications.addNotificationResponseReceivedListener(async res => {
       if (Platform.OS === 'ios') {
-        if (res.notification.request.content.data.body.type === 'base track') navigation.navigate('Duette')
-        else if (res.notification.request.content.data.body.type === 'duette') {
+        if (res.notification.request.content.data.type === 'base track') navigation.navigate('Duette')
+        else if (res.notification.request.content.data.type === 'duette') {
           // check to see if review has been requested
           // if it has, just navigate
           // if it hasn't, update redux requestReview toggle to 'true' before navigating
           const reviewRequestTimeMillis = await SecureStore.getItemAsync('reviewRequestTimeMillis');
           if (!reviewRequestTimeMillis) props.toggleRequestReview(true);
           navigation.navigate('My Duettes');
-        } else if (res.notification.request.content.data.body.type === 'baseTrackUsed') {
+        } else if (res.notification.request.content.data.type === 'baseTrackUsed') {
           navigation.navigate('Accompaniment');
         }
       } else if (Platform.OS === 'android') {
         if (res.notification.request.content.data.type === 'base track') navigation.navigate('Duette')
-        else if (res.notification.request.content.dsata.type === 'duette') {
+        else if (res.notification.request.content.data.type === 'duette') {
           // check to see if review has been requested
           // if it has, just navigate
           // if it hasn't, update redux requestReview toggle to 'true' before navigating
@@ -136,7 +136,7 @@ const SavingVideo = (props) => {
           shouldShare,
           notificationToken: expoPushToken,
           email: updatedEmail ? updatedEmail : props.user.email,
-          name: props.user.name.split(' ')[0],
+          name: !props.user.name.includes('null') ? props.user.name.split(' ')[0] : '',
           sendEmails: props.user.sendEmails,
           // TODO: remove line below
           // test: true,
@@ -160,7 +160,7 @@ const SavingVideo = (props) => {
           userId: props.user.id,
           notificationToken: expoPushToken,
           email: props.user.email,
-          name: props.user.name.split(' ')[0],
+          name: !props.user.name.includes('null') ? props.user.name.split(' ')[0] : '',
           sendEmails: props.user.sendEmails,
         }));
         deleteLocalFile(dataUri);

@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { SafeAreaView, Platform, KeyboardAvoidingView, Modal, Image, Text, View, Button, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { deactivateKeepAwake } from 'expo-keep-awake';
 import { connect } from 'react-redux';
 import { postVideo } from '../redux/videos';
@@ -23,7 +22,7 @@ const DetailsModal = (props) => {
   const [title, setTitle] = useState('');
   const [composer, setComposer] = useState('');
   const [songKey, setSongKey] = useState('');
-  const [performer, setPerformer] = useState(props.user.name);
+  const [performer, setPerformer] = useState(!props.user.name.includes('null') ? props.user.name : '');
   const [notes, setNotes] = useState('');
   const [showAddEmailModal, setShowAddEmailModal] = useState(false);
   const [updatedEmail, setUpdatedEmail] = useState(null);
@@ -75,25 +74,30 @@ const DetailsModal = (props) => {
             <Modal
               supportedOrientations={['portrait', 'landscape', 'landscape-right']}
             >
-              <KeyboardAwareScrollView>
-                <Form
-                  handleSave={handleSave}
-                  deviceType={deviceType}
-                  title={title}
-                  setTitle={setTitle}
-                  composer={composer}
-                  setComposer={setComposer}
-                  songKey={songKey}
-                  setSongKey={setSongKey}
-                  performer={performer}
-                  setPerformer={setPerformer}
-                  notes={notes}
-                  setNotes={setNotes}
-                  setShowDetailsModal={setShowDetailsModal}
-                  makePrivate={makePrivate}
-                  setMakePrivate={setMakePrivate}
-                  type="initial" />
-              </KeyboardAwareScrollView>
+              <KeyboardAvoidingView
+                behavior={Platform.OS == "ios" ? "padding" : "height"}
+              // style={styles.container}
+              >
+                <ScrollView>
+                  <Form
+                    handleSave={handleSave}
+                    deviceType={deviceType}
+                    title={title}
+                    setTitle={setTitle}
+                    composer={composer}
+                    setComposer={setComposer}
+                    songKey={songKey}
+                    setSongKey={setSongKey}
+                    performer={performer}
+                    setPerformer={setPerformer}
+                    notes={notes}
+                    setNotes={setNotes}
+                    setShowDetailsModal={setShowDetailsModal}
+                    makePrivate={makePrivate}
+                    setMakePrivate={setMakePrivate}
+                    type="initial" />
+                </ScrollView>
+              </KeyboardAvoidingView>
             </Modal>
           </View >
         ) : (
